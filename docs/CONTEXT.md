@@ -35,6 +35,7 @@ SyncMate is a shared group calendar for small teams (3–5 people) featuring:
 | **`seed-and-demo-data`** | [`.agent/skills/seed-and-demo-data/SKILL.md`](file:///c:/Users/prakh/OneDrive/Desktop/projects/.agent/skills/seed-and-demo-data/SKILL.md) | ✅ Completed | Idempotent seeder creating 4 personas (`alex@demo.com` etc.), group `DEMO1234`, and SIH 2026. |
 | **`security-review`** | [`.agent/skills/security-review/SKILL.md`](file:///c:/Users/prakh/OneDrive/Desktop/projects/.agent/skills/security-review/SKILL.md) | ✅ Completed | 5-point security audit checklist (rate limits, mongo injection, auth guards, token rotation, secret masking). |
 | **`instant-skill-and-web-search`** | [`.agent/skills/instant-skill-and-web-search/SKILL.md`](file:///c:/Users/prakh/OneDrive/Desktop/projects/.agent/skills/instant-skill-and-web-search/SKILL.md) | ✅ Completed | JIT skill creation on prompt review and web research whenever technical documentation is missing. |
+| **`mobile-feature-workflow`** | [`.agent/skills/mobile-feature-workflow/SKILL.md`](file:///c:/Users/prakh/OneDrive/Desktop/projects/.agent/skills/mobile-feature-workflow/SKILL.md) | ✅ Active | Enforces strict API contracts, design tokens, safe areas, TanStack Query persistence, and mobile patterns. |
 | **Workspace Rules** | [`GEMINI.md`](file:///c:/Users/prakh/OneDrive/Desktop/projects/GEMINI.md) / [`AGENTS.md`](file:///c:/Users/prakh/OneDrive/Desktop/projects/AGENTS.md) | ✅ Active | Enforces contract-first design, prompt review, task tracking, and error prevention protocols. |
 
 ---
@@ -51,6 +52,20 @@ SyncMate is a shared group calendar for small teams (3–5 people) featuring:
 | **Phase 7: Dashboard & Activity** | ✅ Completed | `src/validators/activity.validator.js`, `src/services/activity.service.js`, `src/services/dashboard.service.js`, `src/controllers/dashboard.controller.js`, `src/routes/group.routes.js`, `src/utils/dates.js`, `src/utils/serializers.js` | 4/4 tests pass (`tests/dashboard.test.js`) |
 | **Phase 8: Google Calendar Sync** | ✅ Completed | `src/services/googleCalendar.service.js`, `src/controllers/google.controller.js`, `src/routes/google.routes.js`, `src/listeners/google.listener.js`, `src/jobs/googleResync.job.js`, `src/validators/google.validator.js`, `src/utils/crypto.js` | 16/16 tests pass (`tests/google.test.js`) |
 | **Phase 9: Hardening, Deploy & Seed**| ✅ Completed | `src/seed/seed.js`, `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `src/middleware/rateLimit.js` | Seed tests pass (`tests/seed.test.js`), 0 lint errors |
+
+---
+
+### C. Mobile Application Phases (Expo React Native TypeScript)
+| Phase | Status | Key Files & Modules | Verification |
+| :--- | :--- | :--- | :--- |
+| **Phase 1: Foundation & Auth** | ✅ Completed | `mobile/src/types/api.ts`, `mobile/src/theme/`, `mobile/src/lib/api.ts`, `mobile/src/lib/secureStorage.ts`, `mobile/src/features/auth/` | Typecheck 0 errors, Zod schema tests pass |
+| **Phase 2: Group Onboarding & Flows** | ✅ Completed | `CreateOrJoinScreen.tsx`, `CreateGroupScreen.tsx`, `JoinGroupScreen.tsx`, `GroupDetailsScreen.tsx` | Preview & code generation, Share sheet integration |
+| **Phase 3: Calendar & Event Form** | ✅ Completed | `CalendarScreen.tsx` (Month/Week/Day), `EventFormModal.tsx`, `EventDetailsSheet.tsx` | Category dots, urgent accents, clickable `primaryUrl` |
+| **Phase 4: Dashboard & Tasks** | ✅ Completed | `HomeScreen.tsx`, `TasksScreen.tsx` | Hero card, today timeline, hackathons carousel, priority SectionList |
+| **Phase 5: Realtime Sockets & Push** | ✅ Completed | `mobile/src/lib/socket.ts`, `mobile/src/lib/push.ts`, `NotificationCenterScreen.tsx` | In-place cache updates, Android channels, deep link parsing |
+| **Phase 6: Watchlist & Participation**| ✅ Completed | `WatchlistScreen.tsx`, `WatchCard.tsx`, `StatusSheet.tsx` | Open/closed sections, countdown chips, member glyphs |
+| **Phase 7: Google Calendar & Settings**| ✅ Completed | `SettingsScreen.tsx`, `GoogleSyncScreen.tsx`, `MoreScreen.tsx` | WebBrowser auth session, sync preferences, theme switcher |
+| **Phase 8: Polish, Testing & Release** | ✅ Completed | `mobile/__tests__/`, `mobile/app.json`, `mobile/README.md` | `npm run typecheck` (0 errors), 18/18 Jest tests pass |
 
 ---
 

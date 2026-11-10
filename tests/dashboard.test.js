@@ -50,8 +50,8 @@ describe('Dashboard & Activity Endpoints (Phase 7)', () => {
         title: 'Today Team Standup',
         category: 'meeting',
         priority: 'high',
-        startAt: new Date(Date.now() + 3600000).toISOString(), // in 1 hour
-        endAt: new Date(Date.now() + 7200000).toISOString(),
+        startAt: new Date(Date.now() - 60000).toISOString(), // spans current time
+        endAt: new Date(Date.now() + 60000).toISOString(),
       });
     todayEventId = todayRes.body.data.id;
 

@@ -152,3 +152,4 @@ docker-compose up --build
 Health check is accessible at `http://localhost:5000/health`.
 API documentation is defined in [`openapi.yaml`](file:///c:/Users/prakh/OneDrive/Desktop/projects/openapi.yaml).
 Full contract specifications are defined in [`syncmate-backend-instructions/API_CONTRACT.md`](file:///c:/Users/prakh/OneDrive/Desktop/projects/syncmate-backend-instructions/API_CONTRACT.md).
+
