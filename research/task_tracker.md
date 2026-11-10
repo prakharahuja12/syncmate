@@ -7,27 +7,28 @@
 
 ## 📌 Current Status & Active Focus
 
-- **Current Status**: All 11 SyncMate Backend Skills, README, and DECISIONS.md Built & Verified; Ready for Phase 5 (Reminders)
-- **Active Focus**: Ready to implement Phase 5: Reminders (`src/models/Reminder.js`, `jobs/reminder.job.js`, `PUT /events/:id/reminders`)
+- **Current Status**: Phase 5 (Reminders & Scheduler) Completed & 100% Tested (10/10 Tests Passed)
+- **Active Focus**: Ready to implement Phase 6: Watchlist & Participation (`src/models/Pin.js`, `src/models/Participation.js`, pins, statuses)
 - **Last Updated**: 2026-11-10
 
 ---
 
 ## 📋 What Will You Do (Planned Next Steps)
 
-### Immediate Next Step: Phase 5 (Reminders)
-- [ ] Implement `src/models/Reminder.js` querying and mutations (`PUT /api/v1/events/:id/reminders`).
-- [ ] Implement Reminder Scheduler in `src/jobs/reminder.job.js` using `node-cron` (`* * * * *`):
-  - Atomic claim: `findOneAndUpdate({ _id, status: 'pending', fireAt: { $lte: now } }, { status: 'processing' })`.
-  - Inactive check: cancel if event deleted or completed, or user not in group.
-  - Notification dispatch via `notificationService` (`type: 'reminder'` or `'registration_deadline'`).
-  - Safe catch-up: reminders older than 6h sent with `(missed earlier)`, older than 24h cancelled silently.
-  - No-op when `DISABLE_SCHEDULER=true`.
-- [ ] Daily 08:00 Asia/Kolkata registration-deadline sweep job.
-- [ ] Write integration test suite `tests/reminder.test.js`.
+### Immediate Next Step: Phase 6 (Watchlist & Participation)
+- [ ] Implement `src/models/Pin.js` and `src/models/Participation.js` models.
+- [ ] Implement Zod validators `src/validators/watchlist.validator.js`.
+- [ ] Implement `src/services/pin.service.js` and `src/services/participation.service.js`.
+- [ ] Mount endpoints in `src/routes/watchlist.routes.js` and `src/routes/event.routes.js`:
+  - `POST /api/v1/events/:id/pin` (idempotent pin with group/private visibility)
+  - `DELETE /api/v1/events/:id/pin` (unpin my pin)
+  - `GET /api/v1/groups/:gid/watchlist` (partitioned `{ open, closed }` arrays)
+  - `PUT /api/v1/events/:id/my-status` (per-user participation status; cancel reg reminders on 'registered')
+  - `GET /api/v1/events/:id/participation` (all members' statuses)
+- [ ] Emit realtime socket events: `pin:changed` and `status:changed`.
+- [ ] Write integration test suite `tests/watchlist.test.js`.
 
 ### Subsequent Phases Roadmap
-- [ ] **Phase 6: Watchlist**: `src/models/Pin.js`, `src/models/Participation.js`, pins, statuses, watchlist queries.
 - [ ] **Phase 7: Dashboard**: Aggregated summary endpoint (`GET /groups/:gid/dashboard`).
 - [ ] **Phase 8: Google Calendar Sync**: OAuth flow, AES tokens, reconcile cron.
 - [ ] **Phase 9: Hardening & Deploy**: Rate limiting, Dockerfile, seed script.
@@ -35,6 +36,20 @@
 ---
 
 ## 📜 What Was Done (Completed Work History)
+
+### [2026-11-10] - Phase 5 (Reminders & Scheduler) Completed & Verified
+- **Objective**: Implement per-user reminders, time recomputation, atomic cron claiming, and injectable-clock tests.
+- **Actions Taken**:
+  - Created validator [`src/validators/reminder.validator.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/validators/reminder.validator.js) with strict schema and presets.
+  - Implemented service [`src/services/reminder.service.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/services/reminder.service.js) handling `fireAt` calculations, updates, and cancellations.
+  - Implemented controller [`src/controllers/reminder.controller.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/controllers/reminder.controller.js) and mounted `GET /events/:id/reminders` and `PUT /events/:id/reminders` in [`src/routes/event.routes.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/routes/event.routes.js).
+  - Built scheduler worker [`src/jobs/reminder.job.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/jobs/reminder.job.js) with atomic `findOneAndUpdate({ status: 'pending' }, { status: 'processing' })` lock, stale catch-up rules, and daily 08:00 sweep.
+  - Built scheduler runner [`src/jobs/scheduler.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/jobs/scheduler.js) and wired boot/shutdown lifecycle in [`src/server.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/server.js).
+  - Created test suite [`tests/reminder.test.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/tests/reminder.test.js) covering happy paths, 404 cross-group check, validation errors, and fake-clock atomic delivery.
+- **Verification & Testing**:
+  - `node node_modules/eslint/bin/eslint.js` on all Phase 5 files: 0 errors.
+  - `tests/reminder.test.js`: **10/10 tests passed**.
+- **Status**: Completed & Verified.
 
 ### [2026-11-10] - All 11 Antigravity Skills, README & DECISIONS.md Completed
 - **Objective**: Complete all 11 backend skills, supporting templates/scripts, README.md, self-tests, and architectural decisions.

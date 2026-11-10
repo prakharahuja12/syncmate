@@ -42,3 +42,4 @@ flowchart TD
 4. **`add-realtime-event`** & **`notification-dispatch`**: Broadcast to Socket.IO rooms and push notifications.
 5. **`backend-test-writer`**: Write Supertest suite covering happy path, 404 cross-group check, and validation errors.
 6. **`security-review`**: Audit diff for secret leakage, rate limiting, and parameter validation.
+

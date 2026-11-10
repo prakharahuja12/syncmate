@@ -62,3 +62,4 @@ test('404: cross-group data leakage prevented', async () => {
   expect(res.body.error.code).toBe('NOT_FOUND');
 });
 ```
+

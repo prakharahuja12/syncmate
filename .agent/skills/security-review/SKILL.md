@@ -72,3 +72,4 @@ export async function getEventById(eventId, groupId) {
   return event;
 }
 ```
+

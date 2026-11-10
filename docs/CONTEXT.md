@@ -46,30 +46,25 @@ SyncMate is a shared group calendar for small teams (3–5 people) featuring:
 | **Phase 2: Groups Management** | ✅ Completed | `src/models/Group.js`, `src/controllers/group.controller.js`, `src/routes/group.routes.js`, `src/services/group.service.js` | Group tests pass (`tests/group.test.js`) |
 | **Phase 3: Events & Hackathons** | ✅ Completed | `src/models/Event.js`, `src/validators/event.validator.js`, `src/routes/event.routes.js`, `src/services/event.service.js`, `src/utils/priority.js`, `src/utils/serializers.js` | Event tests pass (`tests/event.test.js` 18/18) |
 | **Phase 4: Realtime & Notifications**| ✅ Completed | `src/realtime/socket.js`, `src/models/Notification.js`, `src/services/notification.service.js`, `src/services/push.service.js`, `src/services/email.service.js`, `src/listeners/` | Notification & Realtime tests pass (`tests/notification.test.js`, `tests/realtime.test.js`) |
+| **Phase 5: Reminders & Scheduler** | ✅ Completed | `src/models/Reminder.js`, `src/validators/reminder.validator.js`, `src/services/reminder.service.js`, `src/controllers/reminder.controller.js`, `src/jobs/reminder.job.js`, `src/jobs/scheduler.js` | 10/10 tests pass (`tests/reminder.test.js`) |
 
 ---
 
 ## 📋 3. Immediate Roadmap ("What Will You Do")
 
 ### Upcoming Development Milestones:
-1. **Complete Remaining Backend Skills**:
-   - [ ] Skill 8: `google-calendar-sync` (OAuth, token encryption, duplicate prevention, reconcile jobs).
-   - [ ] Skill 9: `backend-test-writer` (Jest + Supertest + in-memory MongoDB patterns).
-   - [ ] Skill 10: `seed-and-demo-data` (Idempotent seed script for Team Alpha and SIH 2026).
-   - [ ] Skill 11: `security-review` (Audit diffs against doc 09 checklist).
-   - [ ] Create `.agent/skills/README.md` and verify with 3 self-test scenarios.
-   - [ ] Generate final `DECISIONS.md`.
-
-2. **Phase 5 Implementation: Reminders**:
-   - [ ] Wire `src/models/Reminder.js` querying and mutations (`PUT /api/v1/events/:id/reminders`).
-   - [ ] Implement reminder scheduler worker in `src/jobs/reminder.job.js`.
-   - [ ] Build daily registration-deadline sweep job (08:00 Asia/Kolkata).
-   - [ ] Write integration test suite `tests/reminder.test.js`.
-
-3. **Phase 6 Implementation: Watchlist & Participation**:
+1. **Phase 6 Implementation: Watchlist & Participation**:
    - [ ] Implement `src/models/Pin.js` and `src/models/Participation.js`.
    - [ ] Mount watchlist endpoints: `POST /events/:id/pin`, `DELETE /events/:id/pin`, `GET /groups/:gid/watchlist`.
    - [ ] Mount participation endpoints: `PUT /events/:id/my-status`, `GET /events/:id/participation`.
+   - [ ] Write integration test suite `tests/watchlist.test.js`.
+
+2. **Phase 7 Implementation: Dashboard & Activity**:
+   - [ ] Implement aggregated summary endpoint `GET /groups/:gid/dashboard`.
+   - [ ] Activity log querying with pagination `GET /groups/:gid/activity`.
+
+3. **Phase 8 Implementation: Google Calendar Sync**:
+   - [ ] Implement OAuth callback, token encryption, and reconcile cron `jobs/googleResync.job.js`.
 
 ---
 

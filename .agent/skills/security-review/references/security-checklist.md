@@ -25,3 +25,4 @@
 - [ ] Global rate limiter (100 req/min/IP) and strict auth limiter (10 req/min/IP).
 - [ ] JSON body parsing capped at 1 MB.
 - [ ] Error handler suppresses stack traces when `NODE_ENV === 'production'`.
+

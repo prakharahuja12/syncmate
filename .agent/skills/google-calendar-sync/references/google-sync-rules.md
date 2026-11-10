@@ -33,3 +33,4 @@
   - `assigned_to_me`: Only syncs events where `assignedTo` explicitly contains `user.id`.
   - `none`: Paused.
 - `includeRegistrationDeadlines`: If true, creates an all-day event `"📝 {name} – registration closes"` on the deadline date.
+

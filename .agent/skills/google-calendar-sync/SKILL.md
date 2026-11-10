@@ -97,3 +97,4 @@ export async function syncEventForUser(user, event, kind = 'event') {
   }
 }
 ```
+

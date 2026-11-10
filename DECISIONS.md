@@ -47,3 +47,4 @@ The Antigravity Skills for SyncMate backend have been organized into `.agent/ski
 ### Decision 5: One-Way Google Calendar Sync with Idempotency
 - **Decision**: V1 sync is strictly one-way (SyncMate -> Google). Duplicates are prevented by stamping Google events with `extendedProperties.private = { syncmateEventId, syncmateGroupId }` and tracking `googlesyncs` with SHA-1 content hashes.
 - **Rationale**: Eliminates synchronization loops and prevents duplicate calendar entries across server restarts or retries.
+

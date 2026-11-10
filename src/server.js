@@ -4,6 +4,7 @@ import { connectDB, disconnectDB } from './config/db.js';
 import { env } from './config/env.js';
 import { logger } from './config/logger.js';
 import { initSocket } from './realtime/socket.js';
+import { startScheduler, stopScheduler } from './jobs/scheduler.js';
 
 const startServer = async () => {
   try {
@@ -19,7 +20,10 @@ const startServer = async () => {
     // 4. Initialize Socket.IO
     initSocket(server);
 
-    // 5. Start listening
+    // 5. Start Background Scheduler
+    startScheduler();
+
+    // 6. Start listening
     const PORT = env.PORT || 5000;
     server.listen(PORT, () => {
       logger.info(`SyncMate Backend listening on port ${PORT} [${env.NODE_ENV}]`);
@@ -29,6 +33,7 @@ const startServer = async () => {
     // Graceful shutdown handling
     const shutdown = async (signal) => {
       logger.info(`${signal} signal received: closing HTTP server and database connection`);
+      stopScheduler();
       server.close(async () => {
         logger.info('HTTP server closed');
         try {
