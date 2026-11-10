@@ -2,6 +2,7 @@ import { Router } from 'express';
 import * as groupController from '../controllers/group.controller.js';
 import * as eventController from '../controllers/event.controller.js';
 import * as watchlistController from '../controllers/watchlist.controller.js';
+import * as dashboardController from '../controllers/dashboard.controller.js';
 import { validate } from '../middleware/validate.js';
 import { authenticate } from '../middleware/auth.js';
 import { verifyGroupAccess, requireGroupOwner } from '../middleware/groupAccess.js';
@@ -17,6 +18,7 @@ import {
   listEventsQuerySchema,
 } from '../validators/event.validator.js';
 import { watchlistQuerySchema } from '../validators/watchlist.validator.js';
+import { listActivityQuerySchema } from '../validators/activity.validator.js';
 
 const router = Router();
 
@@ -51,6 +53,20 @@ router.get(
   verifyGroupAccess,
   validate(watchlistQuerySchema, 'query'),
   asyncHandler(watchlistController.getWatchlist)
+);
+
+// Dashboard & Activity scoped by group
+router.get(
+  '/:gid/dashboard',
+  verifyGroupAccess,
+  asyncHandler(dashboardController.getDashboard)
+);
+
+router.get(
+  '/:gid/activity',
+  verifyGroupAccess,
+  validate(listActivityQuerySchema, 'query'),
+  asyncHandler(dashboardController.listActivity)
 );
 
 // Group resource routes scoped by :gid

@@ -187,3 +187,32 @@ export const serializeEvent = (
 
   return response;
 };
+
+/**
+ * Serializes an Activity document into the contract-compliant response shape:
+ * { id, actor: { id, name, avatarColor } | null, action, eventId, summary, createdAt }
+ *
+ * @param {object} activity
+ * @returns {object} Safe activity object
+ */
+export const serializeActivity = (activity) => {
+  if (!activity) return null;
+  const raw = activity.toObject ? activity.toObject() : activity;
+  const actorDoc = raw.actorId && typeof raw.actorId === 'object' ? raw.actorId : null;
+  const actor = actorDoc
+    ? {
+        id: actorDoc._id?.toString() || actorDoc.id,
+        name: actorDoc.name || '',
+        avatarColor: actorDoc.avatarColor || '',
+      }
+    : null;
+
+  return {
+    id: raw._id ? raw._id.toString() : raw.id,
+    actor,
+    action: raw.action,
+    eventId: raw.eventId ? raw.eventId.toString() : null,
+    summary: raw.summary,
+    createdAt: raw.createdAt ? new Date(raw.createdAt).toISOString() : new Date().toISOString(),
+  };
+};

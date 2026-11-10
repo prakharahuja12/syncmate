@@ -7,41 +7,51 @@
 
 ## 📌 Current Status & Active Focus
 
-- **Current Status**: Phase 6 (Watchlist & Participation) Completed & 100% Tested (13/13 Tests Passed)
-- **Active Focus**: Ready to implement Phase 7: Dashboard Aggregated Summary & Activity Logs (`GET /groups/:gid/dashboard`, `GET /groups/:gid/activity`)
+- **Current Status**: Phase 7 (Dashboard & Activity) Completed & 100% Tested (4/4 Tests Passed, 17/17 Total New Tests Passed)
+- **Active Focus**: Ready to implement Phase 8: Google Calendar Sync (`/integrations/google/*`, token encryption, extendedProperties, reconcile cron)
 - **Last Updated**: 2026-11-10
 
 ---
 
 ## 📋 What Will You Do (Planned Next Steps)
 
-### Immediate Next Step: Phase 7 (Dashboard & Activity Logs)
-- [ ] Implement validator `src/validators/activity.validator.js` for activity pagination (`page`, `limit`).
-- [ ] Implement `src/services/dashboard.service.js` aggregating:
-  - `today`: events occurring today.
-  - `upcoming`: events in the next 7 days.
-  - `deadlines`: pending events sorted nearest, including registration-close deadlines.
-  - `highPriority`: pending high priority events.
-  - `nextHighPriority`: earliest pending high priority event.
-  - `recentlyAdded`: last 10 added events.
-  - `upcomingHackathons`: upcoming hackathons.
-  - `watchlistClosingSoon`: pinned events with `registrationClosesAt` in next 7 days and caller status not registered/not_interested.
-  - `recentActivity`: last 10 activity rows.
-  - `stats`: `{ pending, completed, urgent }`.
-- [ ] Implement `src/services/activity.service.js` with paginated activity retrieval.
-- [ ] Implement `src/controllers/dashboard.controller.js`.
-- [ ] Mount endpoints in `src/routes/dashboard.routes.js` and `src/routes/group.routes.js`:
-  - `GET /api/v1/groups/:gid/dashboard`
-  - `GET /api/v1/groups/:gid/activity`
-- [ ] Write integration test suite `tests/dashboard.test.js`.
+### Immediate Next Step: Phase 8 (Google Calendar Sync)
+- [ ] Implement token encryption helper with AES-256-GCM in `src/utils/crypto.js`.
+- [ ] Implement Google Calendar model / user integration fields in `src/models/User.js`.
+- [ ] Implement `src/validators/google.validator.js`:
+  - `authUrlQuerySchema` (`platform: 'web' | 'mobile'`)
+  - `preferencesSchema` (`mode: 'all'|'categories'|'assigned_to_me'|'none'`, `categories`, `priorities`, `includeRegistrationDeadlines`)
+  - `deleteIntegrationQuerySchema` (`removeEvents: boolean`)
+- [ ] Implement `src/services/googleAuth.service.js` and `src/services/googleSync.service.js`:
+  - State token generation (HMAC/signed userId + platform).
+  - OAuth callback with code exchange, token encryption, and web/mobile deep redirect.
+  - One-way event push with extendedProperties (`syncmateEventId`, `syncmateAnchor`, `lastSyncedAt`).
+  - Idempotent delete / disconnect (`?removeEvents=true`).
+- [ ] Implement night reconciliation job `src/jobs/googleResync.job.js`.
+- [ ] Mount routes in `src/routes/google.routes.js` and `src/routes/index.js`.
+- [ ] Write integration test suite `tests/google.test.js`.
 
 ### Subsequent Phases Roadmap
-- [ ] **Phase 8: Google Calendar Sync**: OAuth flow, AES tokens, reconcile cron.
 - [ ] **Phase 9: Hardening & Deploy**: Rate limiting, Dockerfile, seed script.
 
 ---
 
 ## 📜 What Was Done (Completed Work History)
+
+### [2026-11-10] - Phase 7 (Dashboard & Activity) Completed & Verified
+- **Objective**: Implement aggregated group dashboard and paginated activity logs.
+- **Actions Taken**:
+  - Implemented validator [`src/validators/activity.validator.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/validators/activity.validator.js) (`page`, `limit`).
+  - Added timezone day boundaries helper `getUserDayBounds` in [`src/utils/dates.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/utils/dates.js).
+  - Added `serializeActivity` in [`src/utils/serializers.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/utils/serializers.js).
+  - Implemented activity service [`src/services/activity.service.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/services/activity.service.js) with lean, populated retrieval.
+  - Implemented dashboard service [`src/services/dashboard.service.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/services/dashboard.service.js) executing parallel queries for `today`, `upcoming`, `deadlines`, `highPriority`, `nextHighPriority`, `recentlyAdded`, `upcomingHackathons`, `watchlistClosingSoon`, `recentActivity`, and `stats`.
+  - Implemented controller [`src/controllers/dashboard.controller.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/controllers/dashboard.controller.js) and mounted `GET /groups/:gid/dashboard` and `GET /groups/:gid/activity` in [`src/routes/group.routes.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/routes/group.routes.js).
+  - Created integration test suite [`tests/dashboard.test.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/tests/dashboard.test.js).
+- **Verification & Testing**:
+  - ESLint: 0 errors.
+  - `tests/dashboard.test.js`: **4/4 tests passed**. Combined watchlist + dashboard tests: **17/17 passed**. Total passing tests: **118/118**.
+- **Status**: Completed & Verified.
 
 ### [2026-11-10] - Phase 6 (Watchlist & Participation) Completed & Verified
 - **Objective**: Implement pins, group vs private visibility, participation statuses, partitioned watchlist, and automated registration reminders.

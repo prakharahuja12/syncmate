@@ -20,3 +20,18 @@ export const normalizeAllDayDates = (startAt, endAt = null, timezone = 'Asia/Kol
     endAt: endDt.toJSDate(),
   };
 };
+
+/**
+ * Returns the start and end of day in the specified timezone.
+ *
+ * @param {Date|string} [date=new Date()]
+ * @param {string} [timezone='Asia/Kolkata']
+ * @returns {{ startOfDay: Date, endOfDay: Date }}
+ */
+export const getUserDayBounds = (date = new Date(), timezone = 'Asia/Kolkata') => {
+  const zone = timezone || 'Asia/Kolkata';
+  const startOfDay = DateTime.fromJSDate(new Date(date), { zone }).startOf('day').toJSDate();
+  const endOfDay = DateTime.fromJSDate(new Date(date), { zone }).endOf('day').toJSDate();
+
+  return { startOfDay, endOfDay };
+};
