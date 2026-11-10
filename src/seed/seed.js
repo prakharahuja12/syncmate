@@ -380,3 +380,4 @@ if (import.meta.url === `file:///${process.argv[1].replace(/\\/g, '/')}`) {
       process.exit(1);
     });
 }
+

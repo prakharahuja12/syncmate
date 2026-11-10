@@ -71,3 +71,4 @@ export async function disconnect(req, res) {
     message: 'Google Calendar disconnected successfully',
   });
 }
+

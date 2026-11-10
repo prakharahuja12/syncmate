@@ -462,3 +462,4 @@ export async function syncAllForUser(user) {
   user.google.lastSyncAt = new Date();
   await user.save();
 }
+

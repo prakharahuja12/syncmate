@@ -24,3 +24,4 @@ router.post('/sync-now', asyncHandler(googleController.syncNow));
 router.delete('/', validate(deleteGoogleIntegrationQuerySchema, 'query'), asyncHandler(googleController.disconnect));
 
 export default router;
+

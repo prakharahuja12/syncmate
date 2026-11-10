@@ -1,0 +1,518 @@
+openapi: 3.0.3
+info:
+  title: SyncMate Backend API
+  version: 1.0.0
+  description: >
+    Production REST API for SyncMate: A shared group calendar for 3-5 users featuring real-time socket sync,
+    hackathon metadata, reminders, watchlist pins, and one-way Google Calendar synchronization.
+servers:
+  - url: http://localhost:5000/api/v1
+    description: Local development server
+  - url: https://api.syncmate.app/api/v1
+    description: Production server
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: Server is healthy
+
+  /auth/signup:
+    post:
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password]
+              properties:
+                name: { type: string }
+                email: { type: string, format: email }
+                password: { type: string, minLength: 8 }
+      responses:
+        '201':
+          description: User registered successfully
+
+  /auth/login:
+    post:
+      summary: Login with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+      responses:
+        '200':
+          description: Logged in successfully
+
+  /auth/refresh:
+    post:
+      summary: Rotate refresh token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken: { type: string }
+      responses:
+        '200':
+          description: Refreshed token pair
+
+  /auth/logout:
+    post:
+      summary: Revoke refresh token and logout
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logged out successfully
+
+  /auth/me:
+    get:
+      summary: Get current authenticated user and group
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User profile details
+
+  /users/me:
+    patch:
+      summary: Update user profile and preferences
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Updated user profile
+
+  /users/me/push-tokens:
+    post:
+      summary: Register a device push token
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Push token registered
+    delete:
+      summary: Remove a device push token
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Push token removed
+
+  /groups:
+    post:
+      summary: Create a new calendar group
+      security:
+        - bearerAuth: []
+      responses:
+        '201':
+          description: Group created
+
+  /groups/me:
+    get:
+      summary: Get current user group details
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Group details
+
+  /groups/join:
+    post:
+      summary: Join group via invite code
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Joined group successfully
+
+  /groups/invite/{code}/preview:
+    get:
+      summary: Public invite preview
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Group preview
+
+  /groups/{gid}/events:
+    get:
+      summary: List events for a group
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: gid
+          in: path
+          required: true
+          schema: { type: string }
+        - name: from
+          in: query
+          schema: { type: string, format: date-time }
+        - name: to
+          in: query
+          schema: { type: string, format: date-time }
+        - name: category
+          in: query
+          schema: { type: string }
+        - name: priority
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          description: List of events
+    post:
+      summary: Create an event in group
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: gid
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '201':
+          description: Event created
+
+  /groups/{gid}/watchlist:
+    get:
+      summary: Get group watchlist partitioned by open and closed
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: gid
+          in: path
+          required: true
+          schema: { type: string }
+        - name: scope
+          in: query
+          schema: { type: string, enum: [all, mine, group] }
+        - name: sort
+          in: query
+          schema: { type: string, enum: [registrationClosesAt, startAt, pinnedAt] }
+      responses:
+        '200':
+          description: Partitioned watchlist items
+
+  /groups/{gid}/dashboard:
+    get:
+      summary: Aggregated group dashboard summary
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: gid
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Dashboard summary
+
+  /groups/{gid}/activity:
+    get:
+      summary: Paginated group activity logs
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: gid
+          in: path
+          required: true
+          schema: { type: string }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          description: Activity logs
+
+  /events/{id}:
+    get:
+      summary: Get event by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Event object
+    patch:
+      summary: Update event
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Updated event
+    delete:
+      summary: Delete event
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Event deleted
+
+  /events/{id}/complete:
+    post:
+      summary: Mark event as completed
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Event marked completed
+
+  /events/{id}/uncomplete:
+    post:
+      summary: Restore event status to pending
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Event uncompleted
+
+  /events/{id}/reminders:
+    get:
+      summary: Get user reminders for event
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Reminders list
+    put:
+      summary: Replace user reminders for event
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Updated reminders
+
+  /events/{id}/pin:
+    post:
+      summary: Pin event to watchlist (group or private)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Updated pin summary
+    delete:
+      summary: Unpin event from user watchlist
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Pin removed
+
+  /events/{id}/my-status:
+    put:
+      summary: Set user participation status
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Updated participation status
+
+  /events/{id}/participation:
+    get:
+      summary: Get participation statuses of all group members
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Member participation list
+
+  /notifications:
+    get:
+      summary: List in-app notifications
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: unread
+          in: query
+          schema: { type: boolean }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          description: Notifications list
+
+  /notifications/unread-count:
+    get:
+      summary: Get unread notifications count
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Unread count object
+
+  /notifications/{id}/read:
+    patch:
+      summary: Mark notification as read
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Marked as read
+
+  /notifications/read-all:
+    post:
+      summary: Mark all notifications as read
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: All marked as read
+
+  /integrations/google/auth-url:
+    get:
+      summary: Get Google Calendar OAuth URL
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: platform
+          in: query
+          schema: { type: string, enum: [web, mobile], default: web }
+      responses:
+        '200':
+          description: Authorization URL
+
+  /integrations/google/callback:
+    get:
+      summary: Public Google OAuth callback handler
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema: { type: string }
+        - name: state
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        '302':
+          description: Redirects to web or mobile app
+
+  /integrations/google/status:
+    get:
+      summary: Get Google Calendar sync status
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Status details
+
+  /integrations/google/preferences:
+    patch:
+      summary: Update Google Calendar sync preferences
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Updated preferences
+
+  /integrations/google/sync-now:
+    post:
+      summary: Trigger manual synchronization to Google Calendar
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Sync started
+
+  /integrations/google:
+    delete:
+      summary: Disconnect Google Calendar integration
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: removeEvents
+          in: query
+          schema: { type: boolean, default: false }
+      responses:
+        '200':
+          description: Disconnected successfully
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
