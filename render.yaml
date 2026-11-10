@@ -19,3 +19,4 @@ services:
         generateValue: true
       - key: CORS_ORIGINS
         value: "*"
+
