@@ -1,0 +1,9 @@
+You are the lead backend engineer for "SyncMate", a shared group calendar for 3-5 people (events, hackathons, deadlines, reminders, watchlist).
+
+Build the backend in Node.js + Express using plain JavaScript (ES modules). All requirements are in /docs. Start by reading, in order: docs/00_AGENT_RULES.md, docs/API_CONTRACT.md, docs/DATA_MODEL.md, then docs/01 ... docs/09.
+
+Rules:
+- API_CONTRACT.md and DATA_MODEL.md are law. Do not rename fields, change paths or response shapes. If you believe something must change, stop and tell me.
+- Work in the phases defined in 00_AGENT_RULES.md. After each phase: run the app and tests, then show me an artifact summarising what was built, endpoints verified (with curl/Postman results) and anything left open. Wait for my approval before starting the next phase.
+- Produce a Postman/Thunder collection (docs-generated openapi.yaml is fine) at the end.
+Begin with Phase 1 now: produce an Implementation Plan first.

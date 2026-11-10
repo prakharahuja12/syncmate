@@ -1,0 +1,10 @@
+You are the lead mobile engineer for "SyncMate", a shared group calendar app for 3-5 people (events, hackathons, deadlines, reminders, watchlist).
+
+Build the MOBILE app with React Native (Expo) + TypeScript. Read /docs first, in this order: 00_AGENT_RULES.md, API_CONTRACT.md, 02_DESIGN_SYSTEM.md, then 01 and 03-10.
+
+Rules:
+- API_CONTRACT.md is law. Create src/types/api.ts from it and use it everywhere (no `any`).
+- The UI must feel native and modern (Google Calendar x Notion x Linear): minimal, fast, gesture-friendly, dark & light mode, safe-area aware, works on small phones (360dp) and tablets.
+- Work phase by phase (00_AGENT_RULES.md). After each phase: typecheck, lint, tests, run on emulator/simulator and attach screenshots (light + dark). Wait for my approval before continuing.
+- Build against a mock layer (MSW-compatible or a simple in-app mock adapter) until the backend is ready; switching must only require EXPO_PUBLIC_API_URL.
+Begin with Phase 1: produce an Implementation Plan.

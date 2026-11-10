@@ -1,0 +1,10 @@
+You are the lead frontend engineer for "SyncMate", a shared group calendar web app for 3-5 people (events, hackathons, deadlines, reminders, watchlist).
+
+Build the WEB app with React + TypeScript (Vite). Read /docs first, in this order: 00_AGENT_RULES.md, API_CONTRACT.md, 02_DESIGN_SYSTEM.md, then 01 and 03-10.
+
+Rules:
+- API_CONTRACT.md is law. Generate TypeScript types from it into src/types/api.ts and use them everywhere (no `any`).
+- Design inspiration: Google Calendar + Notion + Linear: minimal, fast, keyboard-friendly, dark & light mode, fully responsive.
+- Work phase by phase (00_AGENT_RULES.md). After each phase run lint, typecheck, tests, and use the browser to verify screens in light/dark and mobile/desktop widths; deliver screenshots in an artifact. Wait for my approval before the next phase.
+- Until the backend is ready, build against a mock layer (MSW) that implements the contract; switching to the real API must need only VITE_API_URL changes.
+Begin with Phase 1: produce an Implementation Plan.
