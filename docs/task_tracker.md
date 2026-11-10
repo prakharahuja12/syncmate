@@ -7,8 +7,8 @@
 
 ## 📌 Current Status & Active Focus
 
-- **Current Status**: Backend (Phases 1–9), Mobile (Phases 1–8), and Web Client (Phases 1–8) 100% Completed, Verified & Pushed to GitHub. MongoDB Atlas connected & seeded. Docker deployment hardened with `render.yaml`.
-- **Active Focus**: Deployment to Render verified; ready for local live testing & demo walkthrough.
+- **Current Status**: Backend (Phases 1–9), Mobile (Phases 1–8), and Web Client (Phases 1–8) 100% Completed, Verified & Pushed to GitHub. Render Backend is LIVE at `https://syncmate-2d9o.onrender.com`. Web and Mobile clients configured with live backend. Vercel deployment configuration prepared.
+- **Active Focus**: Ready for Vercel deployment of the Web Client and live multi-user demonstration.
 - **Last Updated**: 2026-11-11
 
 ---
@@ -16,16 +16,28 @@
 ## 📋 What Will You Do (Planned Next Steps)
 
 ### Production Verification & Maintenance
-- [x] **Backend API (Phases 1–9)**: Completed, 135/135 tests passing, Dockerised, pushed to git (`main`).
-- [x] **Mobile App (Phases 1–8)**: Completed, Expo SDK 52, strict TypeScript 0 errors, 18/18 tests passing, pushed to git (`main`).
-- [x] **Web Client (Phases 1–8)**: Completed, Vite + React 18 + Tailwind, strict TypeScript 0 errors, 13/13 tests passing, production build verified, pushed to git (`main`).
+- [x] **Backend API (Phases 1–9)**: Completed, 135/135 tests passing, Dockerised, pushed to git (`main`). Live on Render: `https://syncmate-2d9o.onrender.com`.
+- [x] **Mobile App (Phases 1–8)**: Completed, Expo SDK 52, strict TypeScript 0 errors, 18/18 tests passing, default URL pointed to Render backend.
+- [x] **Web Client (Phases 1–8)**: Completed, Vite + React 18 + Tailwind, strict TypeScript 0 errors, 13/13 tests passing, production build verified, default URL pointed to Render backend.
 - [x] **Database & Cloud Setup**: MongoDB Atlas cluster connected, `.env` configured with production credentials, 4 demo personas seeded (`DEMO1234`).
-- [x] **Docker & Render Optimization**: Dockerfile hardened with `npm install --omit=dev`, `.dockerignore` optimized, `render.yaml` blueprint added.
-- [ ] **System Acceptance & Demo Walkthrough**: Run backend, web, and mobile simultaneously with seeded demo group (`DEMO1234`, `alex@demo.com`) for comprehensive real-time cross-platform demonstration.
+- [x] **Vercel Deployment Configuration**: Added [`web/vercel.json`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/vercel.json) with SPA URL rewrites to prevent 404s on deep links.
+- [ ] **System Acceptance & Demo Walkthrough**: Run live web deployment and mobile client against the live Render API with seeded demo personas (`alex@demo.com`, etc.).
 
 ---
 
 ## 📜 What Was Done (Completed Work History)
+
+### [2026-11-11] - Live Render URL Integration & Vercel Deployment Configuration
+- **Live Backend Verification**: Probed `https://syncmate-2d9o.onrender.com/health` — verified live status: `ok`, uptime: `291s`.
+- **Frontend & App URL Update**:
+  - Pointed [`web/src/lib/constants.ts`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/lib/constants.ts) default `API_BASE_URL` to `https://syncmate-2d9o.onrender.com/api/v1` and `SOCKET_URL` to `https://syncmate-2d9o.onrender.com`.
+  - Pointed [`mobile/src/lib/constants.ts`](file:///c:/Users/prakh/OneDrive/Desktop/projects/mobile/src/lib/constants.ts) default `API_BASE_URL` to `https://syncmate-2d9o.onrender.com/api/v1` and `SOCKET_URL` to `https://syncmate-2d9o.onrender.com`.
+  - Created [`web/.env`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/.env), [`web/.env.production`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/.env.production), and [`mobile/.env`](file:///c:/Users/prakh/OneDrive/Desktop/projects/mobile/.env).
+- **Vercel Deployment Audit**:
+  - Created [`web/vercel.json`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/vercel.json) defining Vite framework and `/(.*) -> /index.html` rewrite rules to prevent 404 errors on deep routes (`/calendar`, `/tasks`, `/watchlist`, `/join/:code`).
+  - Verified `npm run typecheck` passes with **0 errors**.
+  - Verified `npm run build` succeeds in **6.07s** producing `dist/index.html` and assets.
+- **Pushed to GitHub**: Committed and pushed to `origin/main` (commit `0f88b7c`).
 
 ### [2026-11-11] - Cloud Database, Docker & Render Deployment Configuration
 - **MongoDB Atlas Integration**:
