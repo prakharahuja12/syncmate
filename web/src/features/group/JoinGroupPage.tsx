@@ -104,3 +104,4 @@ export const JoinGroupPage: React.FC = () => {
     </div>
   );
 };
+

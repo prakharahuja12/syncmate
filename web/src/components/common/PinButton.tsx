@@ -42,3 +42,4 @@ export const PinButton: React.FC<PinButtonProps> = ({
     </button>
   );
 };
+

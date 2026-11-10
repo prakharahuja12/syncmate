@@ -35,3 +35,4 @@ describe('Web Design Tokens and Constants', () => {
     expect(PARTICIPATION_LABELS.not_interested).toBe('Not interested');
   });
 });
+

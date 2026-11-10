@@ -89,3 +89,4 @@ export const computeIsUrgent = (event: EventItem, now = new Date()): boolean => 
 
   return false;
 };
+

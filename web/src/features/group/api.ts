@@ -49,3 +49,4 @@ export const groupApi = {
     await apiClient.delete(`/groups/${groupId}`);
   },
 };
+

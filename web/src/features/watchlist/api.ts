@@ -15,3 +15,4 @@ export const watchlistApi = {
     return res.data.data;
   },
 };
+

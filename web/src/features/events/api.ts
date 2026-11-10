@@ -100,3 +100,4 @@ export const eventsApi = {
     await apiClient.put(`/events/${eventId}/my-status`, { status });
   },
 };
+

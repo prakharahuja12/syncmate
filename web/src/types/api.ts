@@ -297,3 +297,4 @@ export interface GoogleIntegrationStatus {
   preferences?: GooglePreferences;
   lastSyncAt?: string | null;
 }
+

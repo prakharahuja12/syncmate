@@ -39,3 +39,4 @@ This skill standardizes the lifecycle for building and verifying SyncMate Vite R
 5. Screens/Pages: Integrate views, error/loading/empty states
 6. Verification: Typecheck (tsc --noEmit), lint, and unit tests
 ```
+

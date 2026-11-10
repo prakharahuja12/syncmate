@@ -34,3 +34,4 @@ export const notificationsApi = {
     return res.data.data.unreadCount;
   },
 };
+

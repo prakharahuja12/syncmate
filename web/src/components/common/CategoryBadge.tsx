@@ -24,3 +24,4 @@ export const CategoryBadge: React.FC<CategoryBadgeProps> = ({ category, classNam
     </span>
   );
 };
+

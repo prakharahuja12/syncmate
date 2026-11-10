@@ -60,3 +60,4 @@ export const useUiStore = create<UiState>((set) => ({
   toggleSidebar: () => set((s) => ({ isSidebarCollapsed: !s.isSidebarCollapsed })),
   setPendingInviteCode: (code) => set({ pendingInviteCode: code }),
 }));
+

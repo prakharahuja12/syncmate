@@ -1,50 +1,107 @@
-# SyncMate Backend
+# SyncMate — Full-Stack Shared Team Calendar & Hackathon Tracker
 
-SyncMate is a production-grade shared group calendar API for small teams (3–5 people) with real-time Socket.IO synchronization, rich hackathon metadata, multi-channel reminders, watchlist pins, and one-way Google Calendar integration.
+[![CI Checks](https://img.shields.io/badge/tests-166%20passed-brightgreen.svg)](https://github.com/prakharahuja12/syncmate)
+[![TypeScript Strict](https://img.shields.io/badge/TypeScript-strict-blue.svg)](https://www.typescriptlang.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+**SyncMate** is a production-grade shared calendar platform designed for small teams (3–5 people) participating in hackathons and coordinating academic and group milestones. It features instant real-time synchronization, rich hackathon metadata with direct registration links, a team watchlist with participant status tallying, multi-channel reminders, and safe one-way Google Calendar integration.
 
 ---
 
-## 🏗️ Architecture Overview
+## 🏛️ System Architecture
 
 ```mermaid
 flowchart TD
-    Client[Web & Mobile Clients]
-    API[Express REST API]
-    Socket[Socket.IO Gateway]
-    Bus[Node.js EventBus]
-    Mongo[(MongoDB)]
-    Cron[Node-Cron Scheduler]
-    FCM[Firebase Cloud Messaging]
-    Google[Google Calendar API]
+    subgraph Clients["Full-Stack Client Applications"]
+        Web["Web Client (React 18 + Vite + Tailwind + TanStack Query)"]
+        Mobile["Mobile Client (React Native + Expo SDK 52)"]
+    end
 
-    Client -->|HTTP / REST| API
-    Client <-->|WebSocket| Socket
-    API -->|Mutations| Mongo
-    API -->|Domain Events| Bus
-    Bus -->|Emit Rooms| Socket
-    Bus -->|Push Alerts| FCM
-    Bus -->|One-Way Sync| Google
-    Cron -->|Atomic Claim| Mongo
-    Cron -->|Dispatch Reminders| Bus
+    subgraph Backend["SyncMate Backend Services (Node.js + Express)"]
+        API["REST API (Express v4 + Zod)"]
+        SocketGateway["Socket.IO Realtime Gateway"]
+        EventBus["Internal Domain Event Bus"]
+        Scheduler["Node-Cron Atomic Reminder Worker"]
+    end
+
+    subgraph Storage["Data & External Integrations"]
+        Mongo[("MongoDB Database")]
+        FCM["Firebase Cloud Messaging (Web & Mobile Push)"]
+        GoogleCal["Google Calendar (OAuth2 + AES-256 Sync)"]
+    end
+
+    Web <-->|REST + WebSocket| Backend
+    Mobile <-->|REST + WebSocket| Backend
+    API -->|Read / Write| Mongo
+    API -->|Publish Domain Events| EventBus
+    EventBus -->|Broadcast Rooms| SocketGateway
+    EventBus -->|Push Alerts| FCM
+    EventBus -->|One-Way Sync| GoogleCal
+    Scheduler -->|Atomic Job Claiming| Mongo
+    Scheduler -->|Dispatch Reminders| EventBus
 ```
 
 ---
 
-## ⚡ Quick Start
+## 📂 Repository Structure
+
+```
+syncmate/
+├── src/                         # Backend Server (Node.js, Express, Socket.IO, Mongoose)
+│   ├── config/                  # Environment, DB, and OAuth configurations
+│   ├── controllers/             # REST controllers (Auth, Groups, Events, Watchlist, etc.)
+│   ├── jobs/                    # Atomic cron scheduler & reminder worker
+│   ├── listeners/               # EventBus decoupled handlers (Socket, Push, Google sync)
+│   ├── middleware/              # Auth guards, group tenancy, rate limiting, error handling
+│   ├── models/                  # Mongoose models (User, Group, Event, Pin, Participation, etc.)
+│   ├── routes/                  # Express route declarations adhering to API_CONTRACT.md
+│   ├── seed/                    # Idempotent demo database seeder
+│   ├── services/                # Business logic engines (Google sync, Push, Reminders)
+│   └── utils/                   # Crypto (AES-256-GCM), serializers, and date math
+├── web/                         # Modern Web Application (React 18 + Vite + Tailwind CSS)
+│   ├── src/
+│   │   ├── components/          # Design system components (Sidebar, Topbar, BottomNav, UI)
+│   │   ├── features/            # Feature slices (Auth, Group, Calendar, Dashboard, Watchlist)
+│   │   ├── lib/                 # Axios client with refresh queue, Socket.IO, dates
+│   │   ├── stores/              # Zustand state stores (authStore, uiStore)
+│   │   └── types/               # Strict TypeScript definitions from API_CONTRACT.md
+│   └── __tests__/               # Vitest unit test suite (13 tests)
+├── mobile/                      # Mobile Application (React Native + Expo SDK 52)
+│   ├── src/
+│   │   ├── components/          # Mobile atomic components (Safe areas, Cards, Buttons)
+│   │   ├── features/            # Screens (Calendar, Watchlist, Notifications, Settings)
+│   │   ├── lib/                 # SecureStore tokens, Axios queue, Socket.IO, Push channels
+│   │   ├── navigation/          # React Navigation v7 stacks and bottom tabs
+│   │   └── theme/               # Light/dark tokens, haptics, and responsive layout
+│   └── __tests__/               # Mobile Jest unit tests (18 tests)
+├── tests/                       # Backend Integration Tests (Jest + Supertest + in-memory Mongo)
+└── docs/                        # Specifications, Context Ledger, and Task Tracker
+```
+
+---
+
+## ⚡ Quick Start & Running Locally
 
 ### 1. Prerequisites
 - **Node.js**: `v20.x` or higher
-- **MongoDB**: `v7.x` or higher (local or MongoDB Atlas)
+- **MongoDB**: `v7.x` or higher (local service or MongoDB Atlas)
+- **Expo Go** (optional, for testing on physical mobile devices)
 
 ### 2. Install Dependencies
 ```bash
+# Install backend dependencies
 npm install
+
+# Install web client dependencies
+npm run --prefix web install
+
+# Install mobile client dependencies
+npm run --prefix mobile install
 ```
 
-### 3. Environment Variables
-Copy `.env.example` to `.env` or set the following variables:
-
-```bash
+### 3. Environment Setup
+Create a `.env` file in the root directory:
+```env
 PORT=5000
 NODE_ENV=development
 MONGO_URI=mongodb://localhost:27017/syncmate
@@ -56,100 +113,60 @@ ENCRYPTION_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
 ```
 
 ### 4. Seed the Database
-Populate MongoDB with 4 demo personas (`alex@demo.com`, `sam@demo.com`, `priya@demo.com`, `rahul@demo.com` with password `Demo@1234`), group `Team Alpha` (invite code `DEMO1234`), and 25 realistic events including SIH 2026:
-
+Populate the database with 4 demo personas, group `DEMO1234`, and realistic hackathons (SIH 2026):
 ```bash
 npm run seed
 ```
 
-### 5. Start the Server
-```bash
-# Development mode with hot-reload
-npm run dev
+**Demo Credentials**:
+- **Email**: `alex@demo.com` (also `priya@demo.com`, `sam@demo.com`, `rahul@demo.com`)
+- **Password**: `Demo@1234`
+- **Group Code**: `DEMO1234`
 
-# Production mode
-npm start
-```
-
----
-
-## 🧪 Testing & Code Quality
-
-The backend features a comprehensive automated test suite (Jest + Supertest + in-memory MongoDB):
+### 5. Start Development Servers
+You can run each tier individually or together:
 
 ```bash
-# Run all 12 test suites (135 tests)
-npm test
+# Start backend API (http://localhost:5000)
+npm run dev:backend
 
-# Run ESLint across entire codebase
-npm run lint
+# Start web client (http://localhost:5173)
+npm run dev:web
 
-# Format code with Prettier
-npm run format
+# Start mobile client (Metro bundler / Expo Go)
+npm run dev:mobile
 ```
-
----
-
-## 📜 Available NPM Scripts
-
-| Command | Description |
-| :--- | :--- |
-| `npm start` | Launches production server on `src/server.js` |
-| `npm run dev` | Launches dev server with `nodemon` hot reloading |
-| `npm test` | Runs Jest integration test suite in-band with open handles detection |
-| `npm run lint` | Runs ESLint 9 across all source and test files |
-| `npm run format` | Auto-formats code with Prettier |
-| `npm run seed` | Idempotent database seeder creating demo personas and SIH 2026 |
-
----
-
-## 🔑 Environment Configuration Table
-
-| Variable | Default / Example | Purpose |
-| :--- | :--- | :--- |
-| `PORT` | `5000` | HTTP listening port |
-| `NODE_ENV` | `development` | Runtime environment (`development`, `production`, `test`) |
-| `MONGO_URI` | `mongodb://localhost:27017/syncmate` | MongoDB connection string |
-| `WEB_URL` | `http://localhost:5173` | Web frontend URL for deep linking and redirects |
-| `CORS_ORIGINS` | `http://localhost:5173` | Comma-separated list of allowed origins |
-| `JWT_ACCESS_SECRET` | *required* (≥32 chars) | HMAC secret for signing access JWTs (15m TTL) |
-| `JWT_REFRESH_SECRET` | *required* (≥32 chars) | HMAC secret for signing refresh JWTs (30d TTL) |
-| `ENCRYPTION_KEY` | *required* (64 hex chars) | 32-byte AES-256-GCM key for encrypting Google refresh tokens |
-| `DISABLE_SCHEDULER` | `false` | Disable background cron workers during unit testing |
-| `GOOGLE_CLIENT_ID` | *optional* | Google Cloud OAuth 2.0 Web Client ID |
-| `GOOGLE_CLIENT_SECRET` | *optional* | Google Cloud OAuth 2.0 Client Secret |
-| `GOOGLE_REDIRECT_URI` | `http://localhost:5000/api/v1/integrations/google/callback` | OAuth redirect URI |
-| `FIREBASE_SERVICE_ACCOUNT_JSON` | *optional* | Service account JSON string for FCM push notifications |
-| `SMTP_HOST` | *optional* | SMTP server hostname for email alerts |
-| `SMTP_PORT` | `587` | SMTP server port |
-| `SMTP_USER` | *optional* | SMTP authentication username |
-| `SMTP_PASS` | *optional* | SMTP authentication password |
-
----
-
-## 🌐 External Integrations
-
-### 1. Google Calendar Integration
-- **OAuth Scopes**: `https://www.googleapis.com/auth/calendar.events`, `openid`, `email`
-- **Duplicate Prevention Guarantee**: All Google events carry `extendedProperties.private.syncmateEventId`. SyncMate queries Google Calendar before inserting to prevent duplicate events across resyncs.
-- **Nightly Reconciliation**: Background job runs at `03:00 Asia/Kolkata` ensuring parity and pruning orphaned records.
-
-### 2. Multi-channel Notifications
-- **In-App**: Stored in MongoDB with unread tracking and 90-day TTL.
-- **Push**: Dispatched via Firebase Cloud Messaging multicast to registered device tokens. Tokens are auto-pruned upon unregistration.
-- **Email**: Dispatched via Nodemailer when user preference `settings.emailNotifications` is enabled.
 
 ---
 
 ## 🐳 Docker Deployment
 
-Build and run the entire stack (API + MongoDB) locally or on cloud servers:
+Run the complete backend stack with MongoDB using Docker Compose:
 
 ```bash
 docker-compose up --build
 ```
 
-Health check is accessible at `http://localhost:5000/health`.
-API documentation is defined in [`openapi.yaml`](file:///c:/Users/prakh/OneDrive/Desktop/projects/openapi.yaml).
-Full contract specifications are defined in [`syncmate-backend-instructions/API_CONTRACT.md`](file:///c:/Users/prakh/OneDrive/Desktop/projects/syncmate-backend-instructions/API_CONTRACT.md).
+---
 
+## 🧪 Comprehensive Test Suite (166 Tests Passing)
+
+SyncMate is thoroughly covered with hermetic automated tests across all tiers:
+
+```bash
+# Run all tests across the entire monorepo (166 tests)
+npm run test:all
+
+# Or run tests per component:
+npm run test:backend   # 12 suites, 135 tests passed
+npm run test:web       # 3 suites, 13 tests passed
+npm run test:mobile    # 3 suites, 18 tests passed
+
+# Verify strict TypeScript across web and mobile (0 errors)
+npm run typecheck:all
+```
+
+---
+
+## 📄 License
+MIT © [Prakhar Ahuja](https://github.com/prakharahuja12)

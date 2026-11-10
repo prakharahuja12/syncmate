@@ -11,6 +11,17 @@
     "format": "prettier --write \"src/**/*.js\" \"tests/**/*.js\"",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand --detectOpenHandles --forceExit",
     "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
+    "test:backend": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand --detectOpenHandles --forceExit",
+    "test:web": "npm run --prefix web test",
+    "test:mobile": "npm run --prefix mobile test",
+    "test:all": "npm test && npm run test:web && npm run test:mobile",
+    "typecheck:web": "npm run --prefix web typecheck",
+    "typecheck:mobile": "npm run --prefix mobile typecheck",
+    "typecheck:all": "npm run typecheck:web && npm run typecheck:mobile",
+    "build:web": "npm run --prefix web build",
+    "dev:backend": "nodemon src/server.js",
+    "dev:web": "npm run --prefix web dev",
+    "dev:mobile": "npm run --prefix mobile start",
     "seed": "node src/seed/seed.js"
   },
   "dependencies": {

@@ -47,3 +47,4 @@ export const PARTICIPATION_ICONS = {
   registered: '✅',
   not_interested: '✖️',
 } as const;
+

@@ -81,3 +81,4 @@ export const Topbar: React.FC<TopbarProps> = ({ onNewEvent }) => {
     </header>
   );
 };
+

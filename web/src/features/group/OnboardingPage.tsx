@@ -158,3 +158,4 @@ export const OnboardingPage: React.FC = () => {
     </div>
   );
 };
+

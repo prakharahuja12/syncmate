@@ -27,3 +27,4 @@ export interface BadgeProps
 export function Badge({ className, variant, ...props }: BadgeProps) {
   return <div className={twMerge(clsx(badgeVariants({ variant }), className))} {...props} />;
 }
+

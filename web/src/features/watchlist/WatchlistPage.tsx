@@ -209,3 +209,4 @@ export const WatchlistPage: React.FC = () => {
     </div>
   );
 };
+

@@ -36,3 +36,4 @@ describe('Auth Validation Schemas', () => {
     expect(valid.success).toBe(true);
   });
 });
+
