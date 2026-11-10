@@ -7,9 +7,9 @@
 
 ## 📌 Current Status & Active Focus
 
-- **Current Status**: Backend (Phases 1–9), Mobile (Phases 1–8), and Web Client (Phases 1–8) 100% Completed, Verified & Pushed to GitHub.
-- **Active Focus**: Full-stack completion verified. Ready for deployment and demo walkthrough.
-- **Last Updated**: 2026-11-10
+- **Current Status**: Backend (Phases 1–9), Mobile (Phases 1–8), and Web Client (Phases 1–8) 100% Completed, Verified & Pushed to GitHub. MongoDB Atlas connected & seeded. Docker deployment hardened with `render.yaml`.
+- **Active Focus**: Deployment to Render verified; ready for local live testing & demo walkthrough.
+- **Last Updated**: 2026-11-11
 
 ---
 
@@ -19,11 +19,24 @@
 - [x] **Backend API (Phases 1–9)**: Completed, 135/135 tests passing, Dockerised, pushed to git (`main`).
 - [x] **Mobile App (Phases 1–8)**: Completed, Expo SDK 52, strict TypeScript 0 errors, 18/18 tests passing, pushed to git (`main`).
 - [x] **Web Client (Phases 1–8)**: Completed, Vite + React 18 + Tailwind, strict TypeScript 0 errors, 13/13 tests passing, production build verified, pushed to git (`main`).
+- [x] **Database & Cloud Setup**: MongoDB Atlas cluster connected, `.env` configured with production credentials, 4 demo personas seeded (`DEMO1234`).
+- [x] **Docker & Render Optimization**: Dockerfile hardened with `npm install --omit=dev`, `.dockerignore` optimized, `render.yaml` blueprint added.
 - [ ] **System Acceptance & Demo Walkthrough**: Run backend, web, and mobile simultaneously with seeded demo group (`DEMO1234`, `alex@demo.com`) for comprehensive real-time cross-platform demonstration.
 
 ---
 
 ## 📜 What Was Done (Completed Work History)
+
+### [2026-11-11] - Cloud Database, Docker & Render Deployment Configuration
+- **MongoDB Atlas Integration**:
+  - Connected live cluster `cluster0.lim91cw.mongodb.net/syncmate` in [`.env`](file:///c:/Users/prakh/OneDrive/Desktop/projects/.env).
+  - Executed idempotent seeder populating 4 personas (`alex@demo.com`, `priya@demo.com`, `rahul@demo.com`, `sam@demo.com` with `Demo@1234`), group `Team Alpha` (`DEMO1234`), and 25 realistic events including SIH 2026.
+  - Generated cryptographically secure 256-bit random keys for `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, and `ENCRYPTION_KEY`.
+- **Docker & Render Hardening**:
+  - Fixed Docker build failure on Render by replacing strict `npm ci --only=production` with `npm install --omit=dev --no-audit --no-fund` in [`Dockerfile`](file:///c:/Users/prakh/OneDrive/Desktop/projects/Dockerfile).
+  - Excluded `web/` and `mobile/` from the backend Docker context in [`.dockerignore`](file:///c:/Users/prakh/OneDrive/Desktop/projects/.dockerignore).
+  - Created [`render.yaml`](file:///c:/Users/prakh/OneDrive/Desktop/projects/render.yaml) blueprint specification for one-click deployment.
+- **Pushed to GitHub**: All changes committed and pushed to `origin/main` (commit `d791819`).
 
 ### [2026-11-10] - Web Client Implementation (Phases 1–8) Complete
 - **Objective**: Build the complete SyncMate modern web application (`web/`) in React 18, Vite, TypeScript (`strict: true`), Tailwind CSS, and TanStack Query v5 matching all specifications in `syncmate-web-instructions/00_AGENT_RULES.md` through `10_TESTING_A11Y_DEPLOY.md`.
