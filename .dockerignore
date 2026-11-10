@@ -1,11 +1,16 @@
 node_modules/
+web/
+mobile/
 .git/
 .agent/
 .agents/
 docs/
 research/
 tests/
+scripts/
 .env
 .env.*
 npm-debug.log*
-
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
