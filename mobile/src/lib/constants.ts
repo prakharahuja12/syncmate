@@ -3,10 +3,10 @@ import { Platform } from 'react-native';
 const DEFAULT_LOCAL_HOST = Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
 
 export const API_BASE_URL =
-  process.env.EXPO_PUBLIC_API_URL || `http://${DEFAULT_LOCAL_HOST}:5000/api/v1`;
+  process.env.EXPO_PUBLIC_API_URL || 'https://syncmate-2d9o.onrender.com/api/v1';
 
 export const SOCKET_URL =
-  process.env.EXPO_PUBLIC_SOCKET_URL || `http://${DEFAULT_LOCAL_HOST}:5000`;
+  process.env.EXPO_PUBLIC_SOCKET_URL || 'https://syncmate-2d9o.onrender.com';
 
 export const WEB_URL =
   process.env.EXPO_PUBLIC_WEB_URL || 'https://syncmate.app';
