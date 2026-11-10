@@ -87,9 +87,9 @@ SyncMate is a shared group calendar for small teams (3–5 people) featuring:
 ## 📋 3. Project Roadmap & Production Readiness
 
 ### Status Across All 3 Application Tiers:
-- [x] **Backend API & Realtime Worker (Phases 1–9)**: 100% Completed, 135/135 tests passing, Dockerised.
-- [x] **Mobile App (Expo SDK 52, React Native, Phases 1–8)**: 100% Completed, 18/18 tests passing, strict TypeScript.
-- [x] **Web Application (Vite, React 18, Tailwind, Phases 1–8)**: 100% Completed, 13/13 tests passing, production bundle built.
+- [x] **Backend API & Realtime Worker (Phases 1–9)**: 100% Completed, 135/135 tests passing, Dockerised, Live on Render: `https://syncmate-2d9o.onrender.com`.
+- [x] **Mobile App (Expo SDK 52, React Native, Phases 1–8)**: 100% Completed, 18/18 tests passing, strict TypeScript, APK build workflow via GitHub Actions & EAS.
+- [x] **Web Application (Vite, React 18, Tailwind, Phases 1–8)**: 100% Completed, 13/13 tests passing, production bundle built, Vercel configuration ready.
 
 ---
 
