@@ -36,6 +36,7 @@ SyncMate is a shared group calendar for small teams (3–5 people) featuring:
 | **`security-review`** | [`.agent/skills/security-review/SKILL.md`](file:///c:/Users/prakh/OneDrive/Desktop/projects/.agent/skills/security-review/SKILL.md) | ✅ Completed | 5-point security audit checklist (rate limits, mongo injection, auth guards, token rotation, secret masking). |
 | **`instant-skill-and-web-search`** | [`.agent/skills/instant-skill-and-web-search/SKILL.md`](file:///c:/Users/prakh/OneDrive/Desktop/projects/.agent/skills/instant-skill-and-web-search/SKILL.md) | ✅ Completed | JIT skill creation on prompt review and web research whenever technical documentation is missing. |
 | **`mobile-feature-workflow`** | [`.agent/skills/mobile-feature-workflow/SKILL.md`](file:///c:/Users/prakh/OneDrive/Desktop/projects/.agent/skills/mobile-feature-workflow/SKILL.md) | ✅ Active | Enforces strict API contracts, design tokens, safe areas, TanStack Query persistence, and mobile patterns. |
+| **`web-feature-workflow`** | [`.agent/skills/web-feature-workflow/SKILL.md`](file:///c:/Users/prakh/OneDrive/Desktop/projects/.agent/skills/web-feature-workflow/SKILL.md) | ✅ Active | Enforces strict API contracts, design tokens, responsive layouts, TanStack Query cache patching, and web patterns. |
 | **Workspace Rules** | [`GEMINI.md`](file:///c:/Users/prakh/OneDrive/Desktop/projects/GEMINI.md) / [`AGENTS.md`](file:///c:/Users/prakh/OneDrive/Desktop/projects/AGENTS.md) | ✅ Active | Enforces contract-first design, prompt review, task tracking, and error prevention protocols. |
 
 ---
@@ -69,18 +70,26 @@ SyncMate is a shared group calendar for small teams (3–5 people) featuring:
 
 ---
 
+### D. Web Application Phases (React 18 + Vite + Tailwind + TanStack Query)
+| Phase | Status | Key Files & Modules | Verification |
+| :--- | :--- | :--- | :--- |
+| **Phase 1: Foundation & Setup** | ✅ Completed | `web/src/types/api.ts`, `web/src/styles/globals.css`, `web/src/lib/api.ts`, `web/src/stores/`, `web/src/components/layout/` | Typecheck 0 errors, design tokens in CSS variables |
+| **Phase 2: Group Onboarding & Flows** | ✅ Completed | `OnboardingPage.tsx`, `JoinGroupPage.tsx` (`/join/:code`), `GroupPage.tsx` | Preview, invite copy/regeneration, member avatars |
+| **Phase 3: Calendar & Event Form** | ✅ Completed | `CalendarPage.tsx` (Month/Week/Day), `EventDialog.tsx`, `EventDetailsDrawer.tsx` | Direct registration link click, urgency borders, category chips |
+| **Phase 4: Dashboard & Tasks** | ✅ Completed | `DashboardPage.tsx`, `TasksPage.tsx` | 9 dashboard widgets, next high-priority hero, priority sort |
+| **Phase 5: Realtime Sockets & Push** | ✅ Completed | `web/src/lib/socket.ts`, `NotificationsPage.tsx`, `Topbar.tsx` bell popover | Cache invalidation on realtime events, unread count badge |
+| **Phase 6: Watchlist & Participation**| ✅ Completed | `WatchlistPage.tsx`, `WatchCard.tsx` | Scope tabs (All/Mine/Group), countdown chips, status glyphs |
+| **Phase 7: Google Calendar & Settings**| ✅ Completed | `SettingsPage.tsx`, `GoogleCalendarCard.tsx` | OAuth auth-url connect, sync scope radio cards, safe disconnect |
+| **Phase 8: Polish, Build & Testing** | ✅ Completed | `web/__tests__/`, `web/README.md`, `web/vite.config.ts` | Vitest 13/13 tests pass, `npm run build` succeeds |
+
+---
+
 ## 📋 3. Project Roadmap & Production Readiness
 
-### Status Across All 9 Development Phases:
-- [x] **Phase 1: Foundation & Auth** (100% Complete)
-- [x] **Phase 2: Groups Management & Membership** (100% Complete)
-- [x] **Phase 3: Events & Hackathons** (100% Complete)
-- [x] **Phase 4: Realtime Sockets & Multi-channel Notifications** (100% Complete)
-- [x] **Phase 5: Reminders & Scheduler Worker** (100% Complete)
-- [x] **Phase 6: Watchlist Pins & Participation** (100% Complete)
-- [x] **Phase 7: Dashboard Aggregated Summary & Activity Logs** (100% Complete)
-- [x] **Phase 8: Google Calendar Sync & Nightly Reconcile** (100% Complete)
-- [x] **Phase 9: Hardening, Docker Deploy & Demo Database Seeder** (100% Complete)
+### Status Across All 3 Application Tiers:
+- [x] **Backend API & Realtime Worker (Phases 1–9)**: 100% Completed, 135/135 tests passing, Dockerised.
+- [x] **Mobile App (Expo SDK 52, React Native, Phases 1–8)**: 100% Completed, 18/18 tests passing, strict TypeScript.
+- [x] **Web Application (Vite, React 18, Tailwind, Phases 1–8)**: 100% Completed, 13/13 tests passing, production bundle built.
 
 ---
 

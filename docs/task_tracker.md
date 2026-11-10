@@ -7,26 +7,51 @@
 
 ## 📌 Current Status & Active Focus
 
-- **Current Status**: Mobile Client (`mobile/`) Full Implementation Complete (Phases 1–8). TypeScript strict: 0 errors. All unit tests passing (18/18).
-- **Active Focus**: Verification, documentation, and push directly to GitHub (`main` branch).
+- **Current Status**: Backend (Phases 1–9), Mobile (Phases 1–8), and Web Client (Phases 1–8) 100% Completed, Verified & Pushed to GitHub.
+- **Active Focus**: Full-stack completion verified. Ready for deployment and demo walkthrough.
 - **Last Updated**: 2026-11-10
 
 ---
 
 ## 📋 What Will You Do (Planned Next Steps)
 
-### Production Deployment & Client Integration
-- [x] Implement Expo React Native TypeScript Mobile App (`mobile/`) according to `00_AGENT_RULES.md` and `API_CONTRACT.md`.
-- [x] Implement Design System tokens (`src/theme/tokens.ts`, `ThemeProvider.tsx`, `useTheme.ts`).
-- [x] Implement Secure token storage (`src/lib/secureStorage.ts`) and Axios client with 401 refresh queue (`src/lib/api.ts`).
-- [x] Implement Navigation (`RootNavigator.tsx`, `AuthStack.tsx`, `OnboardingStack.tsx`, `MainTabs.tsx`, `linking.ts`).
-- [x] Implement All Features: Auth, Group onboarding, Calendar (Month/Week/Day), Event Form (with hackathons & reminders), Dashboard & Tasks, Watchlist, Notifications, Google Calendar Sync, Settings.
-- [x] Verify strict TypeScript typecheck (`npm run typecheck`) and unit tests (`npm test`).
-- [ ] Push all mobile and backend code directly to GitHub (`main` branch).
+### Production Verification & Maintenance
+- [x] **Backend API (Phases 1–9)**: Completed, 135/135 tests passing, Dockerised, pushed to git (`main`).
+- [x] **Mobile App (Phases 1–8)**: Completed, Expo SDK 52, strict TypeScript 0 errors, 18/18 tests passing, pushed to git (`main`).
+- [x] **Web Client (Phases 1–8)**: Completed, Vite + React 18 + Tailwind, strict TypeScript 0 errors, 13/13 tests passing, production build verified, pushed to git (`main`).
+- [ ] **System Acceptance & Demo Walkthrough**: Run backend, web, and mobile simultaneously with seeded demo group (`DEMO1234`, `alex@demo.com`) for comprehensive real-time cross-platform demonstration.
 
 ---
 
 ## 📜 What Was Done (Completed Work History)
+
+### [2026-11-10] - Web Client Implementation (Phases 1–8) Complete
+- **Objective**: Build the complete SyncMate modern web application (`web/`) in React 18, Vite, TypeScript (`strict: true`), Tailwind CSS, and TanStack Query v5 matching all specifications in `syncmate-web-instructions/00_AGENT_RULES.md` through `10_TESTING_A11Y_DEPLOY.md`.
+- **Actions Taken**:
+  - **Skill Created**: Built [`.agents/skills/web-feature-workflow/SKILL.md`](file:///c:/Users/prakh/OneDrive/Desktop/projects/.agents/skills/web-feature-workflow/SKILL.md).
+  - **Tooling & Setup**: Vite, React 18, React Router v7, TanStack Query v5, Zustand, Tailwind CSS, Lucide icons, Sonner toasts, Vitest.
+  - **Design System & Theme Tokens**: Implemented dark/light CSS tokens in [`web/src/styles/globals.css`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/styles/globals.css) and DOM class toggle in [`web/src/stores/uiStore.ts`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/stores/uiStore.ts).
+  - **Network & Realtime**:
+    - Axios client with Bearer auth injection, automatic 401 refresh queue, and typed `ApiError` in [`web/src/lib/api.ts`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/lib/api.ts).
+    - Socket.IO client in [`web/src/lib/socket.ts`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/lib/socket.ts) with in-place query cache patching across `events`, `dashboard`, `watchlist`, and `notifications`.
+  - **Layout Shell**:
+    - Desktop sidebar (collapsible) in [`web/src/components/layout/Sidebar.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/components/layout/Sidebar.tsx).
+    - Topbar with notifications bell badge, theme cycler, and group badge in [`web/src/components/layout/Topbar.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/components/layout/Topbar.tsx).
+    - Mobile bottom navigation with center FAB (`+ New event`) in [`web/src/components/layout/BottomNav.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/components/layout/BottomNav.tsx).
+    - Shell wrapper in [`web/src/components/layout/AppShell.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/components/layout/AppShell.tsx).
+  - **Screen Modules**:
+    - Auth: [`LoginPage.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/features/auth/LoginPage.tsx), [`SignupPage.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/features/auth/SignupPage.tsx).
+    - Group Flows: [`OnboardingPage.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/features/group/OnboardingPage.tsx), [`JoinGroupPage.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/features/group/JoinGroupPage.tsx), [`GroupPage.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/features/group/GroupPage.tsx).
+    - Calendar & Events: [`CalendarPage.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/features/calendar/CalendarPage.tsx) (Month/Week/Day, category toggles, urgency border, direct link click), [`EventDialog.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/features/events/EventDialog.tsx), [`EventDetailsDrawer.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/features/events/EventDetailsDrawer.tsx) with prominent "Open registration page ↗" CTA.
+    - Dashboard & Tasks: [`DashboardPage.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/features/dashboard/DashboardPage.tsx) (all 9 widgets including Next High-Priority hero), [`TasksPage.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/features/tasks/TasksPage.tsx) (Pending/Completed tabs, priority sorting, search).
+    - Watchlist: [`WatchlistPage.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/features/watchlist/WatchlistPage.tsx), [`WatchCard.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/features/watchlist/WatchCard.tsx) with member status glyphs (👀, 🗓️, ✅, ✖️, ○) and registration close countdown chips.
+    - Notifications: [`NotificationsPage.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/features/notifications/NotificationsPage.tsx) with type icons, read/unread tabs, and mark-all-read.
+    - Settings & Google Calendar: [`SettingsPage.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/features/settings/SettingsPage.tsx), [`GoogleCalendarCard.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/features/settings/GoogleCalendarCard.tsx) with OAuth connect, sync preferences, and disconnect.
+  - **Routing & App Entry**: [`web/src/router.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/router.tsx), [`web/src/App.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/App.tsx), [`web/src/main.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/main.tsx).
+  - **Verification**:
+    - `npm run typecheck`: **0 TypeScript errors**.
+    - `npm test`: **3/3 test suites passed, 13/13 tests passed**.
+    - `npm run build`: Production bundle built in 6.29s (`dist/index.html`, `dist/assets/`).
 
 ### [2026-11-10] - Mobile App Implementation (Phases 1–8) Complete
 - **Objective**: Build the full SyncMate mobile client (`mobile/`) using React Native (Expo SDK 52) and TypeScript (`strict: true`) matching `syncmate-mobile-instructions/00_AGENT_RULES.md` through `10_TESTING_RELEASE.md`.
