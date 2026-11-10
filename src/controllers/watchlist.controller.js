@@ -59,3 +59,4 @@ export async function getParticipation(req, res) {
 
   return successResponse(res, participation);
 }
+

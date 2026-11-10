@@ -1,0 +1,10 @@
+node_modules/
+.git/
+.agent/
+.agents/
+docs/
+research/
+tests/
+.env
+.env.*
+npm-debug.log*

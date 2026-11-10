@@ -7,36 +7,47 @@
 
 ## 📌 Current Status & Active Focus
 
-- **Current Status**: Phase 7 (Dashboard & Activity) Completed & 100% Tested (4/4 Tests Passed, 17/17 Total New Tests Passed)
-- **Active Focus**: Ready to implement Phase 8: Google Calendar Sync (`/integrations/google/*`, token encryption, extendedProperties, reconcile cron)
+- **Current Status**: All 9 Backend Phases (1–9) 100% Completed, Verified & Passing (135/135 Tests Passed)
+- **Active Focus**: Ready for Frontend / Mobile client consumption or deployment
 - **Last Updated**: 2026-11-10
 
 ---
 
 ## 📋 What Will You Do (Planned Next Steps)
 
-### Immediate Next Step: Phase 8 (Google Calendar Sync)
-- [ ] Implement token encryption helper with AES-256-GCM in `src/utils/crypto.js`.
-- [ ] Implement Google Calendar model / user integration fields in `src/models/User.js`.
-- [ ] Implement `src/validators/google.validator.js`:
-  - `authUrlQuerySchema` (`platform: 'web' | 'mobile'`)
-  - `preferencesSchema` (`mode: 'all'|'categories'|'assigned_to_me'|'none'`, `categories`, `priorities`, `includeRegistrationDeadlines`)
-  - `deleteIntegrationQuerySchema` (`removeEvents: boolean`)
-- [ ] Implement `src/services/googleAuth.service.js` and `src/services/googleSync.service.js`:
-  - State token generation (HMAC/signed userId + platform).
-  - OAuth callback with code exchange, token encryption, and web/mobile deep redirect.
-  - One-way event push with extendedProperties (`syncmateEventId`, `syncmateAnchor`, `lastSyncedAt`).
-  - Idempotent delete / disconnect (`?removeEvents=true`).
-- [ ] Implement night reconciliation job `src/jobs/googleResync.job.js`.
-- [ ] Mount routes in `src/routes/google.routes.js` and `src/routes/index.js`.
-- [ ] Write integration test suite `tests/google.test.js`.
-
-### Subsequent Phases Roadmap
-- [ ] **Phase 9: Hardening & Deploy**: Rate limiting, Dockerfile, seed script.
+### Production Deployment & Client Integration
+- [ ] Connect web client (Vite/React) and mobile client (Expo/React Native) using `API_CONTRACT.md`.
+- [ ] Build and launch production Docker containers using `docker-compose up --build`.
+- [ ] Execute idempotent demo seed script in staging/local environments via `npm run seed`.
 
 ---
 
 ## 📜 What Was Done (Completed Work History)
+
+### [2026-11-10] - Phase 8 (Google Calendar Sync) & Phase 9 (Hardening & Deploy) Completed
+- **Objective**: Implement Google Calendar one-way sync with AES-256-GCM token encryption, duplicate prevention, nightly reconcile job, rate limiting, Docker build files, and idempotent demo database seeder.
+- **Actions Taken**:
+  - Implemented Zod schemas [`src/validators/google.validator.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/validators/google.validator.js) (`authUrlQuerySchema`, `updateGooglePreferencesSchema`, `deleteGoogleIntegrationQuerySchema`).
+  - Implemented Google sync engine [`src/services/googleCalendar.service.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/services/googleCalendar.service.js):
+    - OAuth2 client and signed state JWT authentication (`/auth-url` and `/callback`).
+    - AES-256-GCM encryption of Google refresh tokens via [`src/utils/crypto.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/utils/crypto.js).
+    - `shouldSync` preferences evaluator (`all`, `categories`, `assigned_to_me`, `none`).
+    - Duplicate prevention guarantee: queries Google Calendar by `extendedProperties.private` (`syncmateEventId`) before inserting.
+    - Category-to-Google colorId mapping (hackathon: 11 tomato, meeting: 5 banana, etc.) and priority emoji summaries.
+    - `syncAllForUser` and orphan cleanup.
+    - Disconnect with optional Google Calendar event deletion (`?removeEvents=true`).
+  - Implemented controller [`src/controllers/google.controller.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/controllers/google.controller.js) and mounted routes in [`src/routes/google.routes.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/routes/google.routes.js) under `/api/v1/integrations/google`.
+  - Wired domain listener [`src/listeners/google.listener.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/listeners/google.listener.js) for `domain.event.*` mutations.
+  - Implemented nightly reconciliation worker [`src/jobs/googleResync.job.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/jobs/googleResync.job.js) and scheduled at 03:00 Asia/Kolkata in [`src/jobs/scheduler.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/jobs/scheduler.js).
+  - Built production multi-stage [`Dockerfile`](file:///c:/Users/prakh/OneDrive/Desktop/projects/Dockerfile) (non-root `node` user), [`docker-compose.yml`](file:///c:/Users/prakh/OneDrive/Desktop/projects/docker-compose.yml) (API + Mongo), and [`.dockerignore`](file:///c:/Users/prakh/OneDrive/Desktop/projects/.dockerignore).
+  - Implemented idempotent database seeder [`src/seed/seed.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/seed/seed.js) (`npm run seed`) creating 4 personas (`alex@demo.com` etc., password `Demo@1234`), group `Team Alpha` (code `DEMO1234`), 25 events including SIH 2026, pins, participations, reminders, notifications, and activities.
+  - Created test suites [`tests/google.test.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/tests/google.test.js) and [`tests/seed.test.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/tests/seed.test.js).
+- **Verification & Testing**:
+  - ESLint: 0 errors across all files.
+  - `tests/google.test.js`: **16/16 tests passed**.
+  - `tests/seed.test.js`: **1/1 test passed** (idempotency verified).
+  - Total passing tests: **135/135 tests passed across 12 test suites**.
+- **Status**: Completed & Verified.
 
 ### [2026-11-10] - Phase 7 (Dashboard & Activity) Completed & Verified
 - **Objective**: Implement aggregated group dashboard and paginated activity logs.

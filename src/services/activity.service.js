@@ -21,3 +21,4 @@ export async function listGroupActivity({ groupId, page = 1, limit = 20 }) {
 
   return activities.map(serializeActivity);
 }
+

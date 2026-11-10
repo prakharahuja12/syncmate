@@ -4,6 +4,7 @@ import userRoutes from './user.routes.js';
 import groupRoutes from './group.routes.js';
 import eventRoutes from './event.routes.js';
 import notificationRoutes from './notification.routes.js';
+import googleRoutes from './google.routes.js';
 import { successResponse } from '../utils/response.js';
 
 const router = Router();
@@ -21,5 +22,6 @@ router.use('/users', userRoutes);
 router.use('/groups', groupRoutes);
 router.use('/events', eventRoutes);
 router.use('/notifications', notificationRoutes);
+router.use('/integrations/google', googleRoutes);
 
 export default router;

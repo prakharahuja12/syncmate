@@ -19,3 +19,4 @@ export const watchlistQuerySchema = z
     sort: z.enum(['registrationClosesAt', 'startAt', 'pinnedAt']).default('registrationClosesAt'),
   })
   .strict();
+

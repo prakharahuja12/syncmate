@@ -34,3 +34,4 @@ export async function listActivity(req, res) {
 
   return successResponse(res, activities);
 }
+

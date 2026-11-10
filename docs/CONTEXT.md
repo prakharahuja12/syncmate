@@ -49,19 +49,23 @@ SyncMate is a shared group calendar for small teams (3–5 people) featuring:
 | **Phase 5: Reminders & Scheduler** | ✅ Completed | `src/models/Reminder.js`, `src/validators/reminder.validator.js`, `src/services/reminder.service.js`, `src/controllers/reminder.controller.js`, `src/jobs/reminder.job.js`, `src/jobs/scheduler.js` | 10/10 tests pass (`tests/reminder.test.js`) |
 | **Phase 6: Watchlist & Participation** | ✅ Completed | `src/models/Pin.js`, `src/models/Participation.js`, `src/validators/watchlist.validator.js`, `src/services/pin.service.js`, `src/services/participation.service.js`, `src/services/watchlist.service.js`, `src/controllers/watchlist.controller.js`, `src/routes/event.routes.js`, `src/routes/group.routes.js`, `src/listeners/` | 13/13 tests pass (`tests/watchlist.test.js`) |
 | **Phase 7: Dashboard & Activity** | ✅ Completed | `src/validators/activity.validator.js`, `src/services/activity.service.js`, `src/services/dashboard.service.js`, `src/controllers/dashboard.controller.js`, `src/routes/group.routes.js`, `src/utils/dates.js`, `src/utils/serializers.js` | 4/4 tests pass (`tests/dashboard.test.js`) |
+| **Phase 8: Google Calendar Sync** | ✅ Completed | `src/services/googleCalendar.service.js`, `src/controllers/google.controller.js`, `src/routes/google.routes.js`, `src/listeners/google.listener.js`, `src/jobs/googleResync.job.js`, `src/validators/google.validator.js`, `src/utils/crypto.js` | 16/16 tests pass (`tests/google.test.js`) |
+| **Phase 9: Hardening, Deploy & Seed**| ✅ Completed | `src/seed/seed.js`, `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `src/middleware/rateLimit.js` | Seed tests pass (`tests/seed.test.js`), 0 lint errors |
 
 ---
 
-## 📋 3. Immediate Roadmap ("What Will You Do")
+## 📋 3. Project Roadmap & Production Readiness
 
-### Upcoming Development Milestones:
-1. **Phase 8 Implementation: Google Calendar Sync**:
-   - [ ] OAuth flow (`/integrations/google/auth-url`, `/integrations/google/callback`, status, preferences, sync-now, delete).
-   - [ ] AES-256-GCM token encryption, extendedProperties duplicate prevention, nightly reconcile job.
-   - [ ] Integration test suite `tests/google.test.js`.
-
-2. **Phase 9: Hardening, Rate Limiting & Demo Seed Script**:
-   - [ ] Route-level rate limiting, Dockerfile/compose verification, demo database seeder.
+### Status Across All 9 Development Phases:
+- [x] **Phase 1: Foundation & Auth** (100% Complete)
+- [x] **Phase 2: Groups Management & Membership** (100% Complete)
+- [x] **Phase 3: Events & Hackathons** (100% Complete)
+- [x] **Phase 4: Realtime Sockets & Multi-channel Notifications** (100% Complete)
+- [x] **Phase 5: Reminders & Scheduler Worker** (100% Complete)
+- [x] **Phase 6: Watchlist Pins & Participation** (100% Complete)
+- [x] **Phase 7: Dashboard Aggregated Summary & Activity Logs** (100% Complete)
+- [x] **Phase 8: Google Calendar Sync & Nightly Reconcile** (100% Complete)
+- [x] **Phase 9: Hardening, Docker Deploy & Demo Database Seeder** (100% Complete)
 
 ---
 

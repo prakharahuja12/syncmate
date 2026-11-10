@@ -1,9 +1,11 @@
 import cron from 'node-cron';
 import { logger } from '../config/logger.js';
 import { processDueReminders, runRegistrationDeadlineSweep } from './reminder.job.js';
+import { runNightlyGoogleReconciliation } from './googleResync.job.js';
 
 let reminderTask = null;
 let sweepTask = null;
+let googleReconcileTask = null;
 
 export function startScheduler() {
   if (process.env.DISABLE_SCHEDULER === 'true') {
@@ -35,7 +37,22 @@ export function startScheduler() {
     }
   );
 
-  logger.info('Background scheduler started (reminder worker + daily deadline sweep)');
+  // Daily at 03:00 Asia/Kolkata: Google Calendar reconciliation
+  googleReconcileTask = cron.schedule(
+    '0 3 * * *',
+    async () => {
+      try {
+        await runNightlyGoogleReconciliation();
+      } catch (err) {
+        logger.error({ err }, 'Error in Google Calendar reconciliation cron');
+      }
+    },
+    {
+      timezone: 'Asia/Kolkata',
+    }
+  );
+
+  logger.info('Background scheduler started (reminder worker + sweep + Google reconcile)');
 }
 
 export function stopScheduler() {
@@ -46,6 +63,10 @@ export function stopScheduler() {
   if (sweepTask) {
     sweepTask.stop();
     sweepTask = null;
+  }
+  if (googleReconcileTask) {
+    googleReconcileTask.stop();
+    googleReconcileTask = null;
   }
   logger.info('Background scheduler stopped');
 }
