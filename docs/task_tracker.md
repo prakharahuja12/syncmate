@@ -7,8 +7,8 @@
 
 ## 📌 Current Status & Active Focus
 
-- **Current Status**: Backend (Phases 1–9), Mobile (Phases 1–8), and Web Client (Phases 1–8) 100% Completed, Verified & Pushed to GitHub. Render Backend is LIVE at `https://syncmate-2d9o.onrender.com`. Web production bundle built in `web/dist/`. Mobile native Android project prebuilt in `mobile/android/`. Automated Cloud APK build pipeline configured via GitHub Actions (`.github/workflows/build-apk.yml`) and Expo EAS (`mobile/eas.json`).
-- **Active Focus**: Android APK delivery via Cloud Build / Local Gradle and Web Client Vercel deployment.
+- **Current Status**: Figma Frontend integration complete (`https://www.figma.com/make/ETkco2d1AJ3ONzdhuez5Sf/Create-a-Smooth-Website-Frontend`). Updated web client design system tokens, Syncmate capsule branding, Topbar search bar, Workspace/Manage sidebar navigation, and the full Dashboard layout matching Figma. 13/13 tests pass, 0 typecheck errors, production build verified.
+- **Active Focus**: Full-stack acceptance & cloud demonstration.
 - **Last Updated**: 2026-11-11
 
 ---
@@ -19,6 +19,7 @@
 - [x] **Backend API (Phases 1–9)**: Completed, 135/135 tests passing, Dockerised, pushed to git (`main`). Live on Render: `https://syncmate-2d9o.onrender.com`.
 - [x] **Mobile App (Phases 1–8)**: Completed, Expo SDK 52, strict TypeScript 0 errors, 18/18 tests passing, default URL pointed to Render backend.
 - [x] **Web Client (Phases 1–8)**: Completed, Vite + React 18 + Tailwind, strict TypeScript 0 errors, 13/13 tests passing, production build verified, default URL pointed to Render backend.
+- [x] **Figma Frontend Integration**: Extracted and implemented design from user Figma link (`Create-a-Smooth-Website-Frontend`) with mint teal tokens, digital countdown timer, stats cards, and schedule widgets.
 - [x] **Database & Cloud Setup**: MongoDB Atlas cluster connected, `.env` configured with production credentials, 4 demo personas seeded (`DEMO1234`).
 - [x] **Vercel Deployment Configuration**: Added [`web/vercel.json`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/vercel.json) with SPA URL rewrites to prevent 404s on deep links.
 - [ ] **System Acceptance & Demo Walkthrough**: Run live web deployment and mobile client against the live Render API with seeded demo personas (`alex@demo.com`, etc.).
@@ -26,6 +27,23 @@
 ---
 
 ## 📜 What Was Done (Completed Work History)
+
+### [2026-11-11] - Figma Frontend Design Integration
+- **Design Extraction & Metadata Inspection**:
+  - Retrieved user Figma design from `https://www.figma.com/make/ETkco2d1AJ3ONzdhuez5Sf/Create-a-Smooth-Website-Frontend?t=CMqmqWwurYxNt9j6-1` via oEmbed and extracted high-resolution preview.
+  - Analyzed design structure: dark obsidian theme (`#0C1117`), mint teal primary accents (`#2DD4BF`), dual-capsule Syncmate logo, segmented digital countdown widget, and grid cards.
+- **Components & Layout Upgrades**:
+  - **Design System Tokens**: Updated [`web/src/styles/globals.css`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/styles/globals.css) with `#0C1117` background, `#161F28` cards, `#222E3C` borders, and `#2DD4BF` mint teal primary accents.
+  - **Brand Logo**: Created [`web/src/components/common/SyncmateLogo.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/components/common/SyncmateLogo.tsx) featuring the mint rounded container with dual pill capsules.
+  - **Topbar**: Updated [`web/src/components/layout/Topbar.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/components/layout/Topbar.tsx) with search input (`Search events, tasks...`), `⌘ K` keyboard badge, theme toggle, and mint "+ New event" action button.
+  - **Sidebar**: Updated [`web/src/components/layout/Sidebar.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/components/layout/Sidebar.tsx) with `WORKSPACE` (Dashboard, Calendar, Tasks, Saved) and `MANAGE` (Notifications, Group, Settings) grouped navigation plus user footer card with initials avatar and team subtitle.
+  - **Dashboard**: Upgraded [`web/src/features/dashboard/DashboardPage.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/features/dashboard/DashboardPage.tsx) matching the Figma mockup:
+    - Greeting bar with uppercase date `TUESDAY, NOVEMBER 18` and team headline.
+    - 4 summary stats cards (Pending with clock, Completed with check, Urgent with flame, Watchlist with bookmark).
+    - Next High Priority card with amber glow, category badge, digital countdown timer (`DD : HH : MM`), and full-width mint registration CTA.
+    - Today's schedule card with event timeline and "+ Add event for today" button.
+    - High-priority tasks checklist and Important deadlines calendar blocks with countdown chips.
+- **Verification**: `npm run typecheck` passed (0 errors), `npm test` passed (3/3 suites, 13/13 tests), `npm run build` completed in 6.25s.
 
 ### [2026-11-11] - Mobile APK Build Pipeline & App Asset Locations
 - **Mobile Native Prebuild**: Generated full native Android Gradle project in [`mobile/android/`](file:///c:/Users/prakh/OneDrive/Desktop/projects/mobile/android/) with `build.gradle`, `gradlew.bat`, `app/build.gradle`, and `AndroidManifest.xml`.

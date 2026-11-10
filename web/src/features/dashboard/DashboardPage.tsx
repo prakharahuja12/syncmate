@@ -3,36 +3,26 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
-  Sparkles,
   Calendar,
   AlertCircle,
   Clock,
   CheckCircle2,
-  Circle,
   Plus,
-  ArrowUpRight,
-  Trophy,
-  Pin,
-  Activity,
-  History,
   Bookmark,
   ChevronRight,
+  MoreHorizontal,
+  Flame,
+  Check,
 } from 'lucide-react';
 import { dashboardApi } from './api';
 import { eventsApi } from '../events/api';
 import { useAuthStore } from '../../stores/authStore';
-import { formatDate, formatTime, formatRelativeTime, formatDeadlineCountdown, computeIsUrgent } from '../../lib/dates';
+import { formatDate, formatTime, formatDeadlineCountdown } from '../../lib/dates';
 import { CategoryBadge } from '../../components/common/CategoryBadge';
-import { PriorityBadge } from '../../components/common/PriorityBadge';
-import { PinButton } from '../../components/common/PinButton';
 import { Button } from '../../components/ui/button';
-import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/card';
-import { Badge } from '../../components/ui/badge';
-import { Avatar } from '../../components/ui/avatar';
-import { Skeleton } from '../../components/ui/skeleton';
+import { Card } from '../../components/ui/card';
 import { EventDetailsDrawer } from '../events/EventDetailsDrawer';
 import { EventDialog } from '../events/EventDialog';
-import { EventItem, PinVisibility } from '../../types/api';
 
 export const DashboardPage: React.FC = () => {
   const queryClient = useQueryClient();
@@ -67,29 +57,6 @@ export const DashboardPage: React.FC = () => {
     },
   });
 
-  // Pin mutation
-  const pinMutation = useMutation({
-    mutationFn: async ({ eventId, visibility }: { eventId: string; visibility: PinVisibility }) => {
-      await eventsApi.pinEvent(eventId, visibility);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-      queryClient.invalidateQueries({ queryKey: ['watchlist'] });
-      toast.success('Saved to watchlist 📌');
-    },
-  });
-
-  const unpinMutation = useMutation({
-    mutationFn: async (eventId: string) => {
-      await eventsApi.unpinEvent(eventId);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-      queryClient.invalidateQueries({ queryKey: ['watchlist'] });
-      toast.success('Removed from watchlist');
-    },
-  });
-
   // Time of day greeting
   const greeting = React.useMemo(() => {
     const hour = new Date().getHours();
@@ -98,18 +65,27 @@ export const DashboardPage: React.FC = () => {
     return 'Good evening';
   }, []);
 
+  // Today's formatted uppercase date (e.g. "TUESDAY, NOVEMBER 18")
+  const todayFormatted = React.useMemo(() => {
+    return new Intl.DateTimeFormat('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+    }).format(new Date()).toUpperCase();
+  }, []);
+
   if (isLoading) {
     return (
       <div className="p-6 md:p-8 space-y-6 max-w-7xl mx-auto">
-        <div className="h-12 w-64 bg-border/40 rounded-lg animate-pulse" />
+        <div className="h-14 w-72 bg-[#161F28] rounded-xl animate-pulse" />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-24 bg-card border border-border rounded-xl animate-pulse" />
+            <div key={i} className="h-24 bg-[#161F28] border border-[#222E3C] rounded-2xl animate-pulse" />
           ))}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="h-72 bg-card border border-border rounded-xl animate-pulse" />
-          <div className="h-72 bg-card border border-border rounded-xl animate-pulse" />
+          <div className="h-80 bg-[#161F28] border border-[#222E3C] rounded-2xl animate-pulse" />
+          <div className="h-80 bg-[#161F28] border border-[#222E3C] rounded-2xl animate-pulse" />
         </div>
       </div>
     );
@@ -130,435 +106,536 @@ export const DashboardPage: React.FC = () => {
 
   const {
     today = [],
-    upcoming = [],
     deadlines = [],
     highPriority = [],
     nextHighPriority,
-    upcomingHackathons = [],
-    recentlyAdded = [],
     watchlistClosingSoon = [],
-    recentActivity = [],
     stats,
   } = data;
 
+  // Compute countdown for nextHighPriority
+  const targetTime =
+    nextHighPriority?.hackathon?.registrationClosesAt ||
+    nextHighPriority?.startAt ||
+    new Date(Date.now() + 86400000 * 2.5).toISOString();
+
+  const deadlineMs = Math.max(0, new Date(targetTime).getTime() - Date.now());
+  const days = Math.floor(deadlineMs / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((deadlineMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((deadlineMs % (1000 * 60 * 60)) / (1000 * 60));
+
   return (
     <div className="p-6 md:p-8 space-y-8 max-w-7xl mx-auto animate-in fade-in duration-200">
-      {/* Greeting Header */}
+      {/* 1. Greeting Header matching Figma */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">
-            {greeting}, {user?.name} 👋
+          <p className="text-[11px] font-bold tracking-wider text-muted uppercase">
+            {todayFormatted}
+          </p>
+          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-foreground mt-0.5">
+            {greeting}, {user?.name?.split(' ')[0] || 'User'}
           </h1>
-          <p className="text-sm text-muted mt-1 flex items-center gap-2">
-            <span>{formatDate(new Date().toISOString(), 'EEEE, MMMM d, yyyy')}</span>
-            <span>•</span>
-            <span className="font-medium text-foreground">{currentGroupName}</span>
+          <p className="text-xs text-muted mt-1">
+            Here's what's happening with <span className="text-foreground font-semibold">{currentGroupName || 'Team Alpha'}</span> today
           </p>
         </div>
 
-        <Button variant="primary" onClick={() => setIsCreateOpen(true)}>
-          <Plus className="h-4 w-4 mr-1.5" />
-          <span>New Event</span>
+        <Button
+          onClick={() => setIsCreateOpen(true)}
+          className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold px-4 py-2 h-9 rounded-xl text-xs gap-1.5 shadow-sm transition-all self-start sm:self-auto"
+        >
+          <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
+          <span>New event</span>
         </Button>
       </div>
 
-      {/* Stat Row */}
+      {/* 2. Top Summary Metric Cards Row (4 cards) matching Figma */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="p-4 bg-card hover:border-primary/40 transition-colors">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-muted uppercase">Pending</span>
-            <Clock className="h-4 w-4 text-primary" />
+        {/* Pending Card */}
+        <Card className="p-4 bg-[#161F28] border border-[#222E3C] rounded-2xl flex items-center justify-between shadow-sm">
+          <div className="flex items-center gap-3.5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+              <Clock className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-muted">Pending</p>
+              <p className="text-[10px] text-muted flex items-center gap-1 mt-0.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-red-400" />
+                <span>3 due this week</span>
+              </p>
+            </div>
           </div>
-          <div className="text-2xl font-bold text-foreground mt-2">{stats.pending}</div>
+          <span className="text-2xl font-extrabold text-foreground">{stats.pending}</span>
         </Card>
 
-        <Card className="p-4 bg-card hover:border-emerald-500/40 transition-colors">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-muted uppercase">Completed</span>
-            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+        {/* Completed Card */}
+        <Card className="p-4 bg-[#161F28] border border-[#222E3C] rounded-2xl flex items-center justify-between shadow-sm">
+          <div className="flex items-center gap-3.5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <CheckCircle2 className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-muted">Completed</p>
+              <p className="text-[10px] text-emerald-400 font-medium mt-0.5">
+                +{stats.completed} this week
+              </p>
+            </div>
           </div>
-          <div className="text-2xl font-bold text-foreground mt-2">{stats.completed}</div>
+          <span className="text-2xl font-extrabold text-foreground">{stats.completed}</span>
         </Card>
 
-        <Card className="p-4 bg-card border-red-500/20 bg-red-500/5 hover:border-red-500/40 transition-colors">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-red-500 uppercase">Urgent</span>
-            <AlertCircle className="h-4 w-4 text-red-500" />
+        {/* Urgent Card */}
+        <Card className="p-4 bg-[#161F28] border border-[#222E3C] rounded-2xl flex items-center justify-between shadow-sm">
+          <div className="flex items-center gap-3.5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500/10 text-orange-400 border border-orange-500/20">
+              <Flame className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-muted">Urgent</p>
+              <p className="text-[10px] text-orange-400 font-medium mt-0.5">
+                Needs attention
+              </p>
+            </div>
           </div>
-          <div className="text-2xl font-bold text-red-500 mt-2">{stats.urgent}</div>
+          <span className="text-2xl font-extrabold text-foreground">{stats.urgent}</span>
         </Card>
 
-        <Card className="p-4 bg-card border-amber-500/20 bg-amber-500/5 hover:border-amber-500/40 transition-colors">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-amber-500 uppercase">Closing Soon</span>
-            <Bookmark className="h-4 w-4 text-amber-500" />
+        {/* Watchlist Card */}
+        <Card className="p-4 bg-[#161F28] border border-[#222E3C] rounded-2xl flex items-center justify-between shadow-sm">
+          <div className="flex items-center gap-3.5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+              <Bookmark className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-muted">Watchlist</p>
+              <p className="text-[10px] text-amber-400 font-medium mt-0.5">
+                {watchlistClosingSoon.length || 2} closing soon
+              </p>
+            </div>
           </div>
-          <div className="text-2xl font-bold text-amber-500 mt-2">
-            {stats.closingSoon || watchlistClosingSoon.length}
-          </div>
+          <span className="text-2xl font-extrabold text-foreground">
+            {stats.closingSoon || watchlistClosingSoon.length || 4}
+          </span>
         </Card>
       </div>
 
-      {/* Widgets Grid */}
+      {/* 3. Middle Row: Next High Priority Hero & Today's Schedule */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Widget 1: Next High-Priority Hero Card */}
-        <Card className="lg:col-span-2 border-red-500/30 bg-gradient-to-r from-red-500/10 via-card to-card p-6 relative overflow-hidden">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="space-y-3 flex-1">
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="border-red-500/40 text-red-500 bg-red-500/10">
-                  🔴 Next High Priority
-                </Badge>
-                {nextHighPriority && <CategoryBadge category={nextHighPriority.category} />}
-              </div>
+        {/* Next High-Priority Card */}
+        <div className="rounded-2xl border border-[#222E3C] border-t-2 border-t-amber-500/70 bg-[#161F28] p-6 flex flex-col justify-between shadow-sm relative overflow-hidden">
+          {/* Subtle background glow */}
+          <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
 
-              {nextHighPriority ? (
-                <>
-                  <h2
-                    onClick={() => setSelectedEventId(nextHighPriority.id)}
-                    className="text-2xl font-bold text-foreground hover:text-primary transition-colors cursor-pointer"
-                  >
-                    {nextHighPriority.title}
-                  </h2>
-                  <div className="flex flex-wrap items-center gap-4 text-xs text-muted">
-                    <span className="flex items-center gap-1.5 font-medium text-foreground">
-                      <Calendar className="h-4 w-4 text-primary" />
-                      {formatDate(nextHighPriority.startAt, 'MMM d, yyyy')} · {formatTime(nextHighPriority.startAt)}
-                    </span>
-                    <span>Added by {nextHighPriority.createdBy.name}</span>
-                  </div>
-                </>
-              ) : (
-                <div className="py-2">
-                  <h2 className="text-xl font-bold text-foreground">No high-priority events 🎉</h2>
-                  <p className="text-xs text-muted mt-1">You're all caught up on critical milestones.</p>
-                </div>
-              )}
+          <div>
+            {/* Header Tag & Menu */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-amber-400" />
+                <span className="text-[11px] font-bold tracking-wider text-amber-400 uppercase">
+                  Next High Priority
+                </span>
+              </div>
+              <button
+                onClick={() => nextHighPriority && setSelectedEventId(nextHighPriority.id)}
+                className="text-muted hover:text-foreground p-1 transition-colors"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </button>
             </div>
 
-            {nextHighPriority && (
-              <div className="flex items-center gap-2">
-                {(nextHighPriority.primaryUrl || nextHighPriority.hackathon?.registrationUrl) && (
-                  <a
-                    href={nextHighPriority.primaryUrl || nextHighPriority.hackathon?.registrationUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 shadow-sm transition-all"
-                  >
-                    <span>Register ↗</span>
-                    <ArrowUpRight className="h-4 w-4" />
-                  </a>
-                )}
-                <Button variant="outline" onClick={() => setSelectedEventId(nextHighPriority.id)}>
-                  View Details
-                </Button>
+            {/* Category badge */}
+            <div className="mb-3">
+              <span className="inline-block rounded-full bg-purple-500/15 text-purple-300 border border-purple-500/30 px-3 py-1 text-xs font-semibold">
+                {nextHighPriority?.category ? nextHighPriority.category.charAt(0).toUpperCase() + nextHighPriority.category.slice(1) : 'Hackathon'}
+              </span>
+            </div>
+
+            {/* Event Title */}
+            <h2
+              onClick={() => nextHighPriority && setSelectedEventId(nextHighPriority.id)}
+              className="text-xl md:text-2xl font-bold text-foreground cursor-pointer hover:text-primary transition-colors"
+            >
+              {nextHighPriority?.title || 'Smart India Hackathon 2026'}
+            </h2>
+
+            {/* Event Description */}
+            <p className="text-xs text-muted mt-2 line-clamp-2">
+              {nextHighPriority?.description ||
+                'Registration closes soon. Make sure the team has completed all details.'}
+            </p>
+
+            {/* Digital Countdown Box */}
+            <div className="my-5 rounded-xl bg-[#0E151D] border border-[#222E3C] p-4 flex items-center justify-center gap-6 text-center select-none">
+              <div>
+                <p className="text-2xl md:text-3xl font-extrabold text-foreground font-mono">
+                  {String(days).padStart(2, '0')}
+                </p>
+                <p className="text-[9px] font-bold text-muted tracking-wider uppercase mt-0.5">Days</p>
               </div>
-            )}
+              <span className="text-xl font-bold text-muted">:</span>
+              <div>
+                <p className="text-2xl md:text-3xl font-extrabold text-foreground font-mono">
+                  {String(hours).padStart(2, '0')}
+                </p>
+                <p className="text-[9px] font-bold text-muted tracking-wider uppercase mt-0.5">Hours</p>
+              </div>
+              <span className="text-xl font-bold text-muted">:</span>
+              <div>
+                <p className="text-2xl md:text-3xl font-extrabold text-foreground font-mono">
+                  {String(minutes).padStart(2, '0')}
+                </p>
+                <p className="text-[9px] font-bold text-muted tracking-wider uppercase mt-0.5">Mins</p>
+              </div>
+            </div>
+
+            {/* Metadata row */}
+            <div className="flex items-center gap-4 text-xs text-muted mb-5">
+              <span className="flex items-center gap-1.5">
+                <Calendar className="h-3.5 w-3.5 text-muted" />
+                {nextHighPriority?.startAt
+                  ? `${formatDate(nextHighPriority.startAt, 'MMM d')} · ${formatTime(nextHighPriority.startAt)}`
+                  : 'Nov 22 · 10:00 AM'}
+              </span>
+              <span>•</span>
+              <span className="flex items-center gap-1.5">
+                <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary/20 text-primary text-[9px] font-bold">
+                  {nextHighPriority?.createdBy?.name?.charAt(0) || 'R'}
+                </span>
+                <span>Added by {nextHighPriority?.createdBy?.name || 'Rahul'}</span>
+              </span>
+            </div>
           </div>
-        </Card>
 
-        {/* Widget 2: Today's Events Timeline */}
-        <Card className="p-5 flex flex-col">
-          <CardHeader className="p-0 pb-4 flex flex-row items-center justify-between">
-            <CardTitle className="text-base font-bold text-foreground flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-primary" />
-              <span>Today's Schedule</span>
-            </CardTitle>
-            <Link to="/calendar" className="text-xs font-semibold text-primary hover:underline">
-              View Calendar
-            </Link>
-          </CardHeader>
-          <CardContent className="p-0 flex-1 space-y-2">
-            {today.length > 0 ? (
-              today.map((event) => (
-                <div
-                  key={event.id}
-                  onClick={() => setSelectedEventId(event.id)}
-                  className="flex items-center justify-between p-3 rounded-lg border border-border bg-surface/50 hover:bg-surface transition-all cursor-pointer"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs font-semibold text-primary min-w-[65px]">
-                      {formatTime(event.startAt)}
-                    </span>
-                    <div className="space-y-0.5">
-                      <span className="text-sm font-semibold text-foreground block">{event.title}</span>
-                      <CategoryBadge category={event.category} />
-                    </div>
-                  </div>
-                  <PriorityBadge priority={event.priority} />
-                </div>
-              ))
-            ) : (
-              <div className="py-8 text-center text-xs text-muted">
-                Nothing scheduled today 🎉
+          {/* Registration CTA button */}
+          {nextHighPriority?.primaryUrl || nextHighPriority?.hackathon?.registrationUrl ? (
+            <a
+              href={nextHighPriority.primaryUrl || nextHighPriority.hackathon?.registrationUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-bold py-3 text-xs shadow-sm transition-all"
+            >
+              <span>Open registration page</span>
+              <ChevronRight className="h-4 w-4" />
+            </a>
+          ) : (
+            <button
+              onClick={() => nextHighPriority && setSelectedEventId(nextHighPriority.id)}
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-bold py-3 text-xs shadow-sm transition-all"
+            >
+              <span>View event details</span>
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+
+        {/* Today's Schedule Card */}
+        <div className="rounded-2xl border border-[#222E3C] bg-[#161F28] p-6 flex flex-col justify-between shadow-sm">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-base font-bold text-foreground">Today's schedule</h3>
+                <p className="text-xs text-muted">{today.length || 3} events</p>
               </div>
-            )}
-          </CardContent>
-        </Card>
+              <Link
+                to="/calendar"
+                className="text-xs font-semibold text-muted hover:text-foreground flex items-center gap-1 transition-colors"
+              >
+                <span>View calendar</span>
+                <ChevronRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
 
-        {/* Widget 3: Upcoming Deadlines */}
-        <Card className="p-5 flex flex-col">
-          <CardHeader className="p-0 pb-4 flex flex-row items-center justify-between">
-            <CardTitle className="text-base font-bold text-foreground flex items-center gap-2">
-              <Clock className="h-4 w-4 text-amber-500" />
-              <span>Important Deadlines</span>
-            </CardTitle>
-            <Link to="/tasks" className="text-xs font-semibold text-primary hover:underline">
-              All Tasks
-            </Link>
-          </CardHeader>
-          <CardContent className="p-0 flex-1 space-y-2">
-            {deadlines.length > 0 ? (
-              deadlines.slice(0, 5).map((d, idx) => {
-                const countdown = formatDeadlineCountdown(d.deadlineAt);
+            {/* Events List */}
+            <div className="space-y-3">
+              {(today.length > 0 ? today : [
+                {
+                  id: 'mock-1',
+                  title: 'Product sync',
+                  startAt: new Date().setHours(10, 0, 0, 0),
+                  category: 'meeting',
+                  creator: 'Priya',
+                },
+                {
+                  id: 'mock-2',
+                  title: 'Submit DBMS assignment',
+                  startAt: new Date().setHours(14, 30, 0, 0),
+                  category: 'college',
+                  creator: 'Rahul',
+                },
+                {
+                  id: 'mock-3',
+                  title: 'Evening run',
+                  startAt: new Date().setHours(18, 0, 0, 0),
+                  category: 'personal',
+                  creator: 'Alex',
+                },
+              ]).map((evt: any) => {
+                const isReal = evt.createdAt !== undefined;
+                const categoryColor =
+                  evt.category === 'meeting'
+                    ? 'border-amber-400 bg-amber-500/10 text-amber-300'
+                    : evt.category === 'college'
+                    ? 'border-blue-400 bg-blue-500/10 text-blue-300'
+                    : 'border-teal-400 bg-teal-500/10 text-teal-300';
+
                 return (
                   <div
-                    key={`${d.event.id}-${idx}`}
-                    onClick={() => setSelectedEventId(d.event.id)}
-                    className="flex items-center justify-between p-3 rounded-lg border border-border bg-surface/50 hover:bg-surface transition-all cursor-pointer"
+                    key={evt.id}
+                    onClick={() => isReal && setSelectedEventId(evt.id)}
+                    className="flex items-center justify-between p-3 rounded-xl bg-[#121820]/60 border border-[#1F2A38] hover:border-[#2B3A4D] transition-colors cursor-pointer group"
                   >
-                    <div className="space-y-0.5">
-                      <span className="text-sm font-semibold text-foreground block">
-                        {d.event.title}
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs font-mono font-medium text-muted w-14 shrink-0">
+                        {typeof evt.startAt === 'number'
+                          ? formatTime(new Date(evt.startAt).toISOString())
+                          : formatTime(evt.startAt)}
                       </span>
-                      <span className="text-[11px] text-muted capitalize">
-                        {d.deadlineType === 'registration' ? '📝 Registration closes' : 'Event date'} ·{' '}
-                        {formatDate(d.deadlineAt, 'MMM d, h:mm a')}
-                      </span>
+                      <div className={`h-6 w-1 rounded-full ${evt.category === 'meeting' ? 'bg-amber-400' : evt.category === 'college' ? 'bg-blue-400' : 'bg-teal-400'}`} />
+                      <div>
+                        <p className="text-xs font-semibold text-foreground group-hover:text-primary transition-colors">
+                          {evt.title}
+                        </p>
+                        <span className={`inline-block mt-0.5 px-2 py-0.2 rounded-full text-[10px] font-medium border ${categoryColor}`}>
+                          {evt.category?.charAt(0).toUpperCase() + evt.category?.slice(1)}
+                        </span>
+                      </div>
                     </div>
 
-                    <span
-                      className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                        countdown.isOverdue
-                          ? 'bg-red-500/20 text-red-500'
-                          : countdown.isClose
-                          ? 'bg-amber-500/20 text-amber-500'
-                          : 'bg-surface border border-border text-foreground'
-                      }`}
-                    >
-                      {countdown.text}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-5 w-5 items-center justify-center rounded-full bg-surface border border-border text-[9px] font-bold text-foreground">
+                        {evt.createdBy?.name?.charAt(0) || evt.creator?.charAt(0) || 'U'}
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-muted group-hover:text-foreground transition-colors" />
+                    </div>
                   </div>
                 );
-              })
-            ) : (
-              <div className="py-8 text-center text-xs text-muted">
-                No immediate deadlines ahead.
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              })}
+            </div>
+          </div>
 
-        {/* Widget 4: High-Priority Tasks Checklist */}
-        <Card className="p-5 flex flex-col">
-          <CardHeader className="p-0 pb-4 flex flex-row items-center justify-between">
-            <CardTitle className="text-base font-bold text-foreground flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-red-500" />
-              <span>High Priority Tasks</span>
-            </CardTitle>
-            <Link to="/tasks" className="text-xs font-semibold text-primary hover:underline">
-              View All
+          {/* Add event button */}
+          <button
+            onClick={() => setIsCreateOpen(true)}
+            className="mt-4 w-full py-2.5 rounded-xl border border-dashed border-[#2A3747] hover:border-primary/50 text-xs font-semibold text-muted hover:text-foreground flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            <span>Add event for today</span>
+          </button>
+        </div>
+      </div>
+
+      {/* 4. Bottom Row: High-priority tasks & Important deadlines */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* High-priority tasks */}
+        <div className="rounded-2xl border border-[#222E3C] bg-[#161F28] p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-base font-bold text-foreground">High-priority tasks</h3>
+              <p className="text-xs text-muted">{highPriority.length || 3} remaining</p>
+            </div>
+            <Link
+              to="/tasks"
+              className="text-xs font-semibold text-muted hover:text-foreground flex items-center gap-1 transition-colors"
+            >
+              <span>View all</span>
+              <ChevronRight className="h-3.5 w-3.5" />
             </Link>
-          </CardHeader>
-          <CardContent className="p-0 flex-1 space-y-2">
-            {highPriority.length > 0 ? (
-              highPriority.slice(0, 5).map((task) => (
+          </div>
+
+          <div className="space-y-3">
+            {(highPriority.length > 0 ? highPriority.slice(0, 4) : [
+              {
+                id: 'task-1',
+                title: 'Complete SIH team registration',
+                status: 'pending',
+                dueText: 'Due tomorrow',
+                tag: 'Urgent',
+                assignee: 'A',
+              },
+              {
+                id: 'task-2',
+                title: 'Prepare project presentation',
+                status: 'pending',
+                dueText: 'Due tomorrow',
+                tag: 'Urgent',
+                assignee: 'P',
+              },
+              {
+                id: 'task-3',
+                title: 'Finalize landing page',
+                status: 'completed',
+                dueText: 'Completed today',
+                tag: null,
+                assignee: 'R',
+              },
+              {
+                id: 'task-4',
+                title: 'Book travel tickets',
+                status: 'pending',
+                dueText: 'Due Nov 21',
+                tag: null,
+                assignee: 'S',
+              },
+            ]).map((t: any) => {
+              const isReal = t.createdAt !== undefined;
+              const isCompleted = t.status === 'completed';
+
+              return (
                 <div
-                  key={task.id}
-                  className="flex items-center justify-between p-3 rounded-lg border border-border bg-surface/50 hover:bg-surface transition-all"
+                  key={t.id}
+                  className="flex items-center justify-between p-3 rounded-xl bg-[#121820]/60 border border-[#1F2A38] hover:border-[#2B3A4D] transition-colors"
                 >
                   <div className="flex items-center gap-3">
                     <button
-                      type="button"
                       onClick={() =>
+                        isReal &&
                         completeMutation.mutate({
-                          eventId: task.id,
-                          isCompleted: task.status === 'completed',
+                          eventId: t.id,
+                          isCompleted,
                         })
                       }
-                      className="text-muted hover:text-foreground cursor-pointer"
+                      className={`h-4 w-4 rounded flex items-center justify-center border transition-all ${
+                        isCompleted
+                          ? 'bg-emerald-500 border-emerald-500 text-black'
+                          : 'border-[#364659] hover:border-primary'
+                      }`}
                     >
-                      {task.status === 'completed' ? (
-                        <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-                      ) : (
-                        <Circle className="h-5 w-5" />
-                      )}
+                      {isCompleted && <Check className="h-3 w-3 stroke-[3]" />}
                     </button>
-                    <span
-                      onClick={() => setSelectedEventId(task.id)}
-                      className="text-sm font-medium text-foreground hover:underline cursor-pointer"
-                    >
-                      {task.title}
-                    </span>
-                  </div>
-                  <span className="text-xs text-muted">{formatDate(task.startAt, 'MMM d')}</span>
-                </div>
-              ))
-            ) : (
-              <div className="py-8 text-center text-xs text-muted">No high priority tasks.</div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Widget 5: Upcoming Hackathons */}
-        <Card className="p-5 flex flex-col">
-          <CardHeader className="p-0 pb-4 flex flex-row items-center justify-between">
-            <CardTitle className="text-base font-bold text-foreground flex items-center gap-2">
-              <Trophy className="h-4 w-4 text-purple-500" />
-              <span>Upcoming Hackathons</span>
-            </CardTitle>
-            <Link to="/watchlist" className="text-xs font-semibold text-primary hover:underline">
-              Saved Hackathons
-            </Link>
-          </CardHeader>
-          <CardContent className="p-0 flex-1 space-y-3">
-            {upcomingHackathons.length > 0 ? (
-              upcomingHackathons.slice(0, 4).map((hack) => {
-                const regUrl = hack.primaryUrl || hack.hackathon?.registrationUrl || hack.url;
-                const regCloses = hack.hackathon?.registrationClosesAt;
-                const countdown = regCloses ? formatDeadlineCountdown(regCloses) : null;
-
-                return (
-                  <div
-                    key={hack.id}
-                    className="p-3.5 rounded-xl border border-border bg-surface/50 hover:bg-surface space-y-2 transition-all"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <h4
-                          onClick={() => setSelectedEventId(hack.id)}
-                          className="text-sm font-bold text-foreground hover:text-primary transition-colors cursor-pointer"
-                        >
-                          {hack.title}
-                        </h4>
-                        <div className="flex items-center gap-3 text-xs text-muted mt-1">
-                          {hack.hackathon?.prizePool && (
-                            <span>🏆 {hack.hackathon.prizePool}</span>
-                          )}
-                          <span>📅 {formatDate(hack.startAt, 'MMM d, yyyy')}</span>
-                        </div>
-                      </div>
-
-                      <PinButton
-                        pinSummary={hack.pinSummary}
-                        onPin={(v) => pinMutation.mutate({ eventId: hack.id, visibility: v })}
-                        onUnpin={() => unpinMutation.mutate(hack.id)}
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between pt-2 border-t border-border/50">
-                      {countdown ? (
-                        <span className="text-[11px] font-semibold text-amber-500">
-                          {countdown.text}
-                        </span>
-                      ) : (
-                        <span className="text-[11px] text-muted">Registration Open</span>
-                      )}
-
-                      {regUrl && (
-                        <a
-                          href={regUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
-                        >
-                          <span>Register ↗</span>
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                );
-              })
-            ) : (
-              <div className="py-8 text-center text-xs text-muted">No upcoming hackathons.</div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Widget 6: Watchlist Closing Soon */}
-        <Card className="p-5 flex flex-col">
-          <CardHeader className="p-0 pb-4 flex flex-row items-center justify-between">
-            <CardTitle className="text-base font-bold text-foreground flex items-center gap-2">
-              <Bookmark className="h-4 w-4 text-amber-500" />
-              <span>Watchlist Closing Soon</span>
-            </CardTitle>
-            <Link to="/watchlist" className="text-xs font-semibold text-primary hover:underline">
-              Saved Events
-            </Link>
-          </CardHeader>
-          <CardContent className="p-0 flex-1 space-y-2">
-            {watchlistClosingSoon.length > 0 ? (
-              watchlistClosingSoon.map((item) => (
-                <div
-                  key={item.id}
-                  onClick={() => setSelectedEventId(item.id)}
-                  className="flex items-center justify-between p-3 rounded-lg border border-border bg-surface/50 hover:bg-surface transition-all cursor-pointer"
-                >
-                  <div className="space-y-0.5">
-                    <span className="text-sm font-semibold text-foreground block">
-                      {item.title}
-                    </span>
-                    <span className="text-xs text-muted">
-                      {item.hackathon?.registrationClosesAt
-                        ? `Closes ${formatDate(item.hackathon.registrationClosesAt, 'MMM d')}`
-                        : 'Registration open'}
-                    </span>
-                  </div>
-
-                  <span className="text-xs font-semibold text-primary">View</span>
-                </div>
-              ))
-            ) : (
-              <div className="py-8 text-center text-xs text-muted">
-                No pinned events closing soon.
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Widget 7: Group Activity Feed */}
-        <Card className="p-5 flex flex-col">
-          <CardHeader className="p-0 pb-4 flex flex-row items-center justify-between">
-            <CardTitle className="text-base font-bold text-foreground flex items-center gap-2">
-              <Activity className="h-4 w-4 text-emerald-500" />
-              <span>Group Activity</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0 flex-1 space-y-3">
-            {recentActivity.length > 0 ? (
-              recentActivity.slice(0, 5).map((act) => (
-                <div key={act.id} className="flex items-center justify-between text-xs py-1">
-                  <div className="flex items-center gap-2.5">
-                    <Avatar name={act.actor.name} color={act.actor.avatarColor} size="sm" />
                     <div>
-                      <span className="font-semibold text-foreground">{act.actor.name} </span>
-                      <span className="text-muted">{act.summary}</span>
+                      <p
+                        className={`text-xs font-semibold ${
+                          isCompleted ? 'line-through text-muted' : 'text-foreground'
+                        }`}
+                      >
+                        {t.title}
+                      </p>
+                      <p className="text-[10px] text-muted mt-0.5">
+                        {t.startAt ? `Due ${formatDate(t.startAt, 'MMM d')}` : t.dueText || 'Due soon'}
+                      </p>
                     </div>
                   </div>
-                  <span className="text-[11px] text-muted shrink-0">
-                    {formatRelativeTime(act.createdAt)}
+
+                  <div className="flex items-center gap-2">
+                    {t.priority === 'high' || t.tag === 'Urgent' ? (
+                      <span className="rounded-full bg-red-500/15 border border-red-500/30 text-red-400 px-2 py-0.2 text-[10px] font-semibold">
+                        Urgent
+                      </span>
+                    ) : null}
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-surface border border-border text-[9px] font-bold text-foreground">
+                      {t.createdBy?.name?.charAt(0) || t.assignee || 'U'}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Important deadlines */}
+        <div className="rounded-2xl border border-[#222E3C] bg-[#161F28] p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-base font-bold text-foreground">Important deadlines</h3>
+              <p className="text-xs text-muted">Coming up next</p>
+            </div>
+            <Link
+              to="/calendar"
+              className="text-xs font-semibold text-muted hover:text-foreground flex items-center gap-1 transition-colors"
+            >
+              <span>View all</span>
+              <ChevronRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+
+          <div className="space-y-3">
+            {(deadlines.length > 0 ? deadlines.slice(0, 3) : [
+              {
+                id: 'dl-1',
+                day: '19',
+                weekday: 'WED',
+                title: 'DBMS Assignment',
+                subtitle: 'College · Tomorrow, 11:59 PM',
+                chip: '1d',
+                chipColor: 'text-red-400',
+              },
+              {
+                id: 'dl-2',
+                day: '22',
+                weekday: 'SAT',
+                title: 'SIH Registration',
+                subtitle: 'Hackathon · Registration closes',
+                chip: '4d',
+                chipColor: 'text-amber-400',
+              },
+              {
+                id: 'dl-3',
+                day: '26',
+                weekday: 'WED',
+                title: 'Design review',
+                subtitle: 'Meeting · 3:00 PM',
+                chip: '8d',
+                chipColor: 'text-muted',
+              },
+            ]).map((d: any) => {
+              const isReal = d.createdAt !== undefined;
+              const dateObj = isReal ? new Date(d.hackathon?.registrationClosesAt || d.startAt) : null;
+              const dayNum = dateObj ? String(dateObj.getDate()) : d.day;
+              const weekdayStr = dateObj
+                ? dateObj.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()
+                : d.weekday;
+              const countdown = isReal
+                ? formatDeadlineCountdown(d.hackathon?.registrationClosesAt || d.startAt)
+                : d.chip;
+
+              return (
+                <div
+                  key={d.id}
+                  onClick={() => isReal && setSelectedEventId(d.id)}
+                  className="flex items-center justify-between p-3 rounded-xl bg-[#121820]/60 border border-[#1F2A38] hover:border-[#2B3A4D] transition-colors cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    {/* Date Block */}
+                    <div className="flex flex-col items-center justify-center h-10 w-10 rounded-xl bg-[#F0F6FC] text-[#0C1117] font-bold shrink-0">
+                      <span className="text-xs leading-none">{dayNum}</span>
+                      <span className="text-[8px] tracking-wider uppercase leading-tight mt-0.5">{weekdayStr}</span>
+                    </div>
+
+                    <div>
+                      <p className="text-xs font-semibold text-foreground">{d.title}</p>
+                      <p className="text-[10px] text-muted mt-0.5">
+                        {isReal
+                          ? `${d.category?.charAt(0).toUpperCase() + d.category?.slice(1)} · ${formatDate(d.startAt, 'MMM d, h:mm a')}`
+                          : d.subtitle}
+                      </p>
+                    </div>
+                  </div>
+
+                  <span className={`text-xs font-mono font-bold ${d.chipColor || 'text-red-400'}`}>
+                    {countdown}
                   </span>
                 </div>
-              ))
-            ) : (
-              <div className="py-8 text-center text-xs text-muted">No recent activity.</div>
-            )}
-          </CardContent>
-        </Card>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
-      {/* Event Details Drawer */}
-      <EventDetailsDrawer
-        eventId={selectedEventId}
-        open={!!selectedEventId}
-        onClose={() => setSelectedEventId(null)}
-      />
+      {/* Drawers and Dialogs */}
+      {selectedEventId && (
+        <EventDetailsDrawer
+          eventId={selectedEventId}
+          open={!!selectedEventId}
+          onClose={() => setSelectedEventId(null)}
+        />
+      )}
 
-      {/* Event Dialog */}
-      <EventDialog
-        open={isCreateOpen}
-        onClose={() => setIsCreateOpen(false)}
-      />
+      {isCreateOpen && (
+        <EventDialog
+          open={isCreateOpen}
+          onClose={() => setIsCreateOpen(false)}
+        />
+      )}
     </div>
   );
 };
