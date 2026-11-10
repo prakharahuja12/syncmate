@@ -3,6 +3,7 @@ import { createApp } from './app.js';
 import { connectDB, disconnectDB } from './config/db.js';
 import { env } from './config/env.js';
 import { logger } from './config/logger.js';
+import { initSocket } from './realtime/socket.js';
 
 const startServer = async () => {
   try {
@@ -15,7 +16,10 @@ const startServer = async () => {
     // 3. Create HTTP Server
     const server = http.createServer(app);
 
-    // 4. Start listening
+    // 4. Initialize Socket.IO
+    initSocket(server);
+
+    // 5. Start listening
     const PORT = env.PORT || 5000;
     server.listen(PORT, () => {
       logger.info(`SyncMate Backend listening on port ${PORT} [${env.NODE_ENV}]`);

@@ -41,7 +41,7 @@ export default [
       'prefer-const': 'error',
       'no-unused-vars': [
         'error',
-        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' },
       ],
       'no-console': ['warn', { allow: ['warn', 'error', 'info'] }],
     },

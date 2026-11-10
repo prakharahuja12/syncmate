@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import * as groupController from '../controllers/group.controller.js';
+import * as eventController from '../controllers/event.controller.js';
 import { validate } from '../middleware/validate.js';
 import { authenticate } from '../middleware/auth.js';
 import { verifyGroupAccess, requireGroupOwner } from '../middleware/groupAccess.js';
@@ -10,6 +11,10 @@ import {
   updateGroupSchema,
   transferOwnerSchema,
 } from '../validators/group.validator.js';
+import {
+  createEventSchema,
+  listEventsQuerySchema,
+} from '../validators/event.validator.js';
 
 const router = Router();
 
@@ -22,6 +27,21 @@ router.use(authenticate);
 router.post('/', validate(createGroupSchema), asyncHandler(groupController.createGroup));
 router.get('/me', asyncHandler(groupController.getGroupMe));
 router.post('/join', validate(joinGroupSchema), asyncHandler(groupController.joinGroup));
+
+// Events scoped by group
+router.get(
+  '/:gid/events',
+  verifyGroupAccess,
+  validate(listEventsQuerySchema, 'query'),
+  asyncHandler(eventController.listGroupEvents)
+);
+
+router.post(
+  '/:gid/events',
+  verifyGroupAccess,
+  validate(createEventSchema),
+  asyncHandler(eventController.createEvent)
+);
 
 // Group resource routes scoped by :gid
 router.patch(
@@ -68,3 +88,4 @@ router.delete(
 );
 
 export default router;
+

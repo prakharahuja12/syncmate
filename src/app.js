@@ -11,8 +11,12 @@ import { errorHandler } from './middleware/errorHandler.js';
 import { ApiError } from './utils/ApiError.js';
 import { successResponse } from './utils/response.js';
 import apiRouter from './routes/index.js';
+import { registerAllListeners } from './listeners/index.js';
 
 export const createApp = () => {
+  // Ensure domain event listeners are registered
+  registerAllListeners();
+
   const app = express();
 
   // Trust proxy if running behind reverse proxy

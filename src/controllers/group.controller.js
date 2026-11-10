@@ -76,3 +76,4 @@ export const deleteGroup = async (req, res) => {
   );
   return successResponse(res, result, 200);
 };
+
