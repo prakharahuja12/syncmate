@@ -88,4 +88,49 @@ export const registerActivityListener = () => {
       logger.error({ err }, 'Failed to record member.left activity');
     }
   });
+
+  eventBus.on('domain.pin.added', async ({ event, user, groupId }) => {
+    try {
+      const actorName = user?.name || 'Someone';
+      await Activity.create({
+        groupId,
+        actorId: user._id,
+        action: 'pin.added',
+        eventId: event._id,
+        summary: `${actorName} pinned ${event.title}`,
+      });
+    } catch (err) {
+      logger.error({ err }, 'Failed to record pin.added activity');
+    }
+  });
+
+  eventBus.on('domain.pin.removed', async ({ event, user, groupId }) => {
+    try {
+      const actorName = user?.name || 'Someone';
+      await Activity.create({
+        groupId,
+        actorId: user._id,
+        action: 'pin.removed',
+        eventId: event._id,
+        summary: `${actorName} unpinned ${event.title}`,
+      });
+    } catch (err) {
+      logger.error({ err }, 'Failed to record pin.removed activity');
+    }
+  });
+
+  eventBus.on('domain.status.registered', async ({ event, user, groupId }) => {
+    try {
+      const actorName = user?.name || 'Someone';
+      await Activity.create({
+        groupId,
+        actorId: user._id,
+        action: 'status.changed',
+        eventId: event._id,
+        summary: `${actorName} registered for ${event.title}`,
+      });
+    } catch (err) {
+      logger.error({ err }, 'Failed to record status.changed activity');
+    }
+  });
 };

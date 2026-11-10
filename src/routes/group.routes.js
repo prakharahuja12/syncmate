@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import * as groupController from '../controllers/group.controller.js';
 import * as eventController from '../controllers/event.controller.js';
+import * as watchlistController from '../controllers/watchlist.controller.js';
 import { validate } from '../middleware/validate.js';
 import { authenticate } from '../middleware/auth.js';
 import { verifyGroupAccess, requireGroupOwner } from '../middleware/groupAccess.js';
@@ -15,6 +16,7 @@ import {
   createEventSchema,
   listEventsQuerySchema,
 } from '../validators/event.validator.js';
+import { watchlistQuerySchema } from '../validators/watchlist.validator.js';
 
 const router = Router();
 
@@ -41,6 +43,14 @@ router.post(
   verifyGroupAccess,
   validate(createEventSchema),
   asyncHandler(eventController.createEvent)
+);
+
+// Watchlist scoped by group
+router.get(
+  '/:gid/watchlist',
+  verifyGroupAccess,
+  validate(watchlistQuerySchema, 'query'),
+  asyncHandler(watchlistController.getWatchlist)
 );
 
 // Group resource routes scoped by :gid

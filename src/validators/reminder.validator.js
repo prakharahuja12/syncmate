@@ -20,3 +20,4 @@ export const putRemindersSchema = z
     reminders: z.array(reminderItemSchema).default([]),
   })
   .strict();
+

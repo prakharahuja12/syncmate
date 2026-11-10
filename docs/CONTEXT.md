@@ -47,24 +47,34 @@ SyncMate is a shared group calendar for small teams (3–5 people) featuring:
 | **Phase 3: Events & Hackathons** | ✅ Completed | `src/models/Event.js`, `src/validators/event.validator.js`, `src/routes/event.routes.js`, `src/services/event.service.js`, `src/utils/priority.js`, `src/utils/serializers.js` | Event tests pass (`tests/event.test.js` 18/18) |
 | **Phase 4: Realtime & Notifications**| ✅ Completed | `src/realtime/socket.js`, `src/models/Notification.js`, `src/services/notification.service.js`, `src/services/push.service.js`, `src/services/email.service.js`, `src/listeners/` | Notification & Realtime tests pass (`tests/notification.test.js`, `tests/realtime.test.js`) |
 | **Phase 5: Reminders & Scheduler** | ✅ Completed | `src/models/Reminder.js`, `src/validators/reminder.validator.js`, `src/services/reminder.service.js`, `src/controllers/reminder.controller.js`, `src/jobs/reminder.job.js`, `src/jobs/scheduler.js` | 10/10 tests pass (`tests/reminder.test.js`) |
+| **Phase 6: Watchlist & Participation** | ✅ Completed | `src/models/Pin.js`, `src/models/Participation.js`, `src/validators/watchlist.validator.js`, `src/services/pin.service.js`, `src/services/participation.service.js`, `src/services/watchlist.service.js`, `src/controllers/watchlist.controller.js`, `src/routes/event.routes.js`, `src/routes/group.routes.js`, `src/listeners/` | 13/13 tests pass (`tests/watchlist.test.js`) |
 
 ---
 
 ## 📋 3. Immediate Roadmap ("What Will You Do")
 
 ### Upcoming Development Milestones:
-1. **Phase 6 Implementation: Watchlist & Participation**:
-   - [ ] Implement `src/models/Pin.js` and `src/models/Participation.js`.
-   - [ ] Mount watchlist endpoints: `POST /events/:id/pin`, `DELETE /events/:id/pin`, `GET /groups/:gid/watchlist`.
-   - [ ] Mount participation endpoints: `PUT /events/:id/my-status`, `GET /events/:id/participation`.
-   - [ ] Write integration test suite `tests/watchlist.test.js`.
+1. **Phase 7 Implementation: Dashboard & Activity**:
+   - [ ] Implement aggregated summary endpoint `GET /groups/:gid/dashboard` with sections:
+     - `today`: events occurring today.
+     - `upcoming`: events in the next 7 days.
+     - `deadlines`: pending events sorted nearest, including registration-close deadlines.
+     - `highPriority`: pending high priority events.
+     - `nextHighPriority`: earliest pending high priority event.
+     - `recentlyAdded`: last 10 added events.
+     - `upcomingHackathons`: upcoming hackathon events.
+     - `watchlistClosingSoon`: events pinned (group or caller) with `registrationClosesAt` in next 7 days and caller status not registered/not_interested.
+     - `recentActivity`: last 10 activity rows.
+     - `stats`: `{ pending: number, completed: number, urgent: number }`.
+   - [ ] Activity log querying with pagination `GET /groups/:gid/activity?page&limit`.
+   - [ ] Integration test suite `tests/dashboard.test.js`.
 
-2. **Phase 7 Implementation: Dashboard & Activity**:
-   - [ ] Implement aggregated summary endpoint `GET /groups/:gid/dashboard`.
-   - [ ] Activity log querying with pagination `GET /groups/:gid/activity`.
+2. **Phase 8 Implementation: Google Calendar Sync**:
+   - [ ] OAuth flow (`/integrations/google/auth-url`, `/integrations/google/callback`, status, preferences, sync-now, delete).
+   - [ ] AES-256-GCM token encryption, extendedProperties duplicate prevention, nightly reconcile job.
 
-3. **Phase 8 Implementation: Google Calendar Sync**:
-   - [ ] Implement OAuth callback, token encryption, and reconcile cron `jobs/googleResync.job.js`.
+3. **Phase 9: Hardening, Rate Limiting & Demo Seed Script**:
+   - [ ] Route-level rate limiting, Dockerfile/compose verification, demo database seeder.
 
 ---
 

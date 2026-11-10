@@ -21,3 +21,4 @@ export async function setReminders(req, res) {
 
   return successResponse(res, reminders);
 }
+

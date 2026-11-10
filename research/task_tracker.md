@@ -7,35 +7,56 @@
 
 ## 📌 Current Status & Active Focus
 
-- **Current Status**: Phase 5 (Reminders & Scheduler) Completed & 100% Tested (10/10 Tests Passed)
-- **Active Focus**: Ready to implement Phase 6: Watchlist & Participation (`src/models/Pin.js`, `src/models/Participation.js`, pins, statuses)
+- **Current Status**: Phase 6 (Watchlist & Participation) Completed & 100% Tested (13/13 Tests Passed)
+- **Active Focus**: Ready to implement Phase 7: Dashboard Aggregated Summary & Activity Logs (`GET /groups/:gid/dashboard`, `GET /groups/:gid/activity`)
 - **Last Updated**: 2026-11-10
 
 ---
 
 ## 📋 What Will You Do (Planned Next Steps)
 
-### Immediate Next Step: Phase 6 (Watchlist & Participation)
-- [ ] Implement `src/models/Pin.js` and `src/models/Participation.js` models.
-- [ ] Implement Zod validators `src/validators/watchlist.validator.js`.
-- [ ] Implement `src/services/pin.service.js` and `src/services/participation.service.js`.
-- [ ] Mount endpoints in `src/routes/watchlist.routes.js` and `src/routes/event.routes.js`:
-  - `POST /api/v1/events/:id/pin` (idempotent pin with group/private visibility)
-  - `DELETE /api/v1/events/:id/pin` (unpin my pin)
-  - `GET /api/v1/groups/:gid/watchlist` (partitioned `{ open, closed }` arrays)
-  - `PUT /api/v1/events/:id/my-status` (per-user participation status; cancel reg reminders on 'registered')
-  - `GET /api/v1/events/:id/participation` (all members' statuses)
-- [ ] Emit realtime socket events: `pin:changed` and `status:changed`.
-- [ ] Write integration test suite `tests/watchlist.test.js`.
+### Immediate Next Step: Phase 7 (Dashboard & Activity Logs)
+- [ ] Implement validator `src/validators/activity.validator.js` for activity pagination (`page`, `limit`).
+- [ ] Implement `src/services/dashboard.service.js` aggregating:
+  - `today`: events occurring today.
+  - `upcoming`: events in the next 7 days.
+  - `deadlines`: pending events sorted nearest, including registration-close deadlines.
+  - `highPriority`: pending high priority events.
+  - `nextHighPriority`: earliest pending high priority event.
+  - `recentlyAdded`: last 10 added events.
+  - `upcomingHackathons`: upcoming hackathons.
+  - `watchlistClosingSoon`: pinned events with `registrationClosesAt` in next 7 days and caller status not registered/not_interested.
+  - `recentActivity`: last 10 activity rows.
+  - `stats`: `{ pending, completed, urgent }`.
+- [ ] Implement `src/services/activity.service.js` with paginated activity retrieval.
+- [ ] Implement `src/controllers/dashboard.controller.js`.
+- [ ] Mount endpoints in `src/routes/dashboard.routes.js` and `src/routes/group.routes.js`:
+  - `GET /api/v1/groups/:gid/dashboard`
+  - `GET /api/v1/groups/:gid/activity`
+- [ ] Write integration test suite `tests/dashboard.test.js`.
 
 ### Subsequent Phases Roadmap
-- [ ] **Phase 7: Dashboard**: Aggregated summary endpoint (`GET /groups/:gid/dashboard`).
 - [ ] **Phase 8: Google Calendar Sync**: OAuth flow, AES tokens, reconcile cron.
 - [ ] **Phase 9: Hardening & Deploy**: Rate limiting, Dockerfile, seed script.
 
 ---
 
 ## 📜 What Was Done (Completed Work History)
+
+### [2026-11-10] - Phase 6 (Watchlist & Participation) Completed & Verified
+- **Objective**: Implement pins, group vs private visibility, participation statuses, partitioned watchlist, and automated registration reminders.
+- **Actions Taken**:
+  - Implemented Zod validators [`src/validators/watchlist.validator.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/validators/watchlist.validator.js) (`pinEventSchema`, `myStatusSchema`, `watchlistQuerySchema`).
+  - Implemented pin service [`src/services/pin.service.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/services/pin.service.js) handling idempotent pinning, private pin isolation, default 3d/1d reminders on save, and domain/socket emissions.
+  - Implemented participation service [`src/services/participation.service.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/services/participation.service.js) handling independent statuses, registration reminder cancellations, and member status maps with `null` defaults.
+  - Implemented watchlist service [`src/services/watchlist.service.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/services/watchlist.service.js) partitioning items into `{ open, closed }` arrays with `daysToRegistrationClose` and scope/status filters.
+  - Implemented controller [`src/controllers/watchlist.controller.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/controllers/watchlist.controller.js) and mounted endpoints in [`src/routes/event.routes.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/routes/event.routes.js) and [`src/routes/group.routes.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/routes/group.routes.js).
+  - Wired domain event listeners in [`src/listeners/activity.listener.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/listeners/activity.listener.js) and [`src/listeners/notification.listener.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/listeners/notification.listener.js) for `domain.pin.added`, `domain.pin.removed`, and `domain.status.registered`.
+  - Created integration test suite [`tests/watchlist.test.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/tests/watchlist.test.js) with 13 comprehensive test scenarios.
+- **Verification & Testing**:
+  - ESLint: 0 errors.
+  - `tests/watchlist.test.js`: **13/13 tests passed**. Total suite passing tests: **114/114**.
+- **Status**: Completed & Verified.
 
 ### [2026-11-10] - Phase 5 (Reminders & Scheduler) Completed & Verified
 - **Objective**: Implement per-user reminders, time recomputation, atomic cron claiming, and injectable-clock tests.

@@ -211,3 +211,4 @@ export async function cancelRegistrationReminders(eventId, userId) {
     { $set: { status: 'cancelled' } }
   );
 }
+
