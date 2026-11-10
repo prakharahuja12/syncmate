@@ -7,8 +7,8 @@
 
 ## 📌 Current Status & Active Focus
 
-- **Current Status**: Backend (Phases 1–9), Mobile (Phases 1–8), and Web Client (Phases 1–8) 100% Completed, Verified & Pushed to GitHub. Render Backend is LIVE at `https://syncmate-2d9o.onrender.com`. Web and Mobile clients configured with live backend. Vercel deployment configuration prepared.
-- **Active Focus**: Ready for Vercel deployment of the Web Client and live multi-user demonstration.
+- **Current Status**: Backend (Phases 1–9), Mobile (Phases 1–8), and Web Client (Phases 1–8) 100% Completed, Verified & Pushed to GitHub. Render Backend is LIVE at `https://syncmate-2d9o.onrender.com`. Web production bundle built in `web/dist/`. Mobile native Android project prebuilt in `mobile/android/`. Automated Cloud APK build pipeline configured via GitHub Actions (`.github/workflows/build-apk.yml`) and Expo EAS (`mobile/eas.json`).
+- **Active Focus**: Android APK delivery via Cloud Build / Local Gradle and Web Client Vercel deployment.
 - **Last Updated**: 2026-11-11
 
 ---
@@ -26,6 +26,13 @@
 ---
 
 ## 📜 What Was Done (Completed Work History)
+
+### [2026-11-11] - Mobile APK Build Pipeline & App Asset Locations
+- **Mobile Native Prebuild**: Generated full native Android Gradle project in [`mobile/android/`](file:///c:/Users/prakh/OneDrive/Desktop/projects/mobile/android/) with `build.gradle`, `gradlew.bat`, `app/build.gradle`, and `AndroidManifest.xml`.
+- **Automated Cloud APK Workflow**: Created [`.github/workflows/build-apk.yml`](file:///c:/Users/prakh/OneDrive/Desktop/projects/.github/workflows/build-apk.yml) running on Ubuntu runners with JDK 17, Android SDK 34, running `./gradlew assembleRelease` and uploading `SyncMate-Release-APK` artifact.
+- **Expo EAS Build Config**: Created [`mobile/eas.json`](file:///c:/Users/prakh/OneDrive/Desktop/projects/mobile/eas.json) with `buildType: "apk"` for instant cloud builds via `npx eas-cli build -p android --profile preview`.
+- **Web App Production Bundle**: Rebuilt [`web/dist/`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/dist/) (`dist/index.html`, `dist/assets/index-CwELPRcn.css`, `dist/assets/index-Dp0ch99j.js`).
+- **Pushed to GitHub**: Committed assets, EAS configuration, and GitHub Actions workflow.
 
 ### [2026-11-11] - Live Render URL Integration & Vercel Deployment Configuration
 - **Live Backend Verification**: Probed `https://syncmate-2d9o.onrender.com/health` — verified live status: `ok`, uptime: `291s`.
