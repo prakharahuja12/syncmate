@@ -57,3 +57,4 @@ export async function executeAction({ resourceId, groupId, userId, data }) {
   eventBus.emit('domain.<entity>.<action>', { resourceId, groupId, userId });
   return {};
 }
+

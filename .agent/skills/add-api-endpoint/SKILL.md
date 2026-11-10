@@ -88,3 +88,4 @@ export async function setEventCompletion({ eventId, groupId, userId, isCompleted
   return event;
 }
 ```
+
