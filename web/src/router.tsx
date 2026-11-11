@@ -7,6 +7,8 @@ import {
 } from 'react-router-dom';
 import { useAuthStore } from './stores/authStore';
 import { AppShell } from './components/layout/AppShell';
+import { SyncmateLogo } from './components/common/SyncmateLogo';
+import { ServerWakeupBanner } from './components/common/ServerWakeupBanner';
 
 import { LoginPage } from './features/auth/LoginPage';
 import { SignupPage } from './features/auth/SignupPage';
@@ -20,6 +22,17 @@ import { WatchlistPage } from './features/watchlist/WatchlistPage';
 import { NotificationsPage } from './features/notifications/NotificationsPage';
 import { SettingsPage } from './features/settings/SettingsPage';
 
+const BootstrapLoader: React.FC = () => (
+  <div className="flex min-h-screen w-screen items-center justify-center bg-background px-4">
+    <div className="flex flex-col items-center gap-4 w-full max-w-sm">
+      <SyncmateLogo size="md" />
+      <div className="h-7 w-7 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      <span className="text-xs font-semibold text-muted">Loading SyncMate...</span>
+      <ServerWakeupBanner className="w-full" />
+    </div>
+  </div>
+);
+
 // Guard for protected routes (requires authentication)
 const ProtectedRoute: React.FC = () => {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -27,14 +40,7 @@ const ProtectedRoute: React.FC = () => {
   const location = useLocation();
 
   if (isBootstrapping) {
-    return (
-      <div className="flex h-screen w-screen items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-          <span className="text-xs font-semibold text-muted">Loading SyncMate...</span>
-        </div>
-      </div>
-    );
+    return <BootstrapLoader />;
   }
 
   if (!isAuthenticated) {
@@ -66,11 +72,7 @@ const PublicRoute: React.FC = () => {
   const group = useAuthStore((s) => s.group);
 
   if (isBootstrapping) {
-    return (
-      <div className="flex h-screen w-screen items-center justify-center bg-background">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-      </div>
-    );
+    return <BootstrapLoader />;
   }
 
   if (isAuthenticated) {

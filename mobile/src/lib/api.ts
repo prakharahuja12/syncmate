@@ -2,6 +2,7 @@ import axios, { AxiosError, AxiosRequestConfig, InternalAxiosRequestConfig } fro
 import { API_BASE_URL } from './constants';
 import { secureStorage } from './secureStorage';
 import { useAuthStore } from '../stores/authStore';
+import { useServerStatusStore } from './serverStatus';
 import { ApiErrorDetail, ApiErrorResponse, RefreshResponse } from '../types/api';
 
 export class ApiError extends Error {
@@ -20,11 +21,17 @@ export class ApiError extends Error {
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 15000,
+  timeout: 90000, // Allow up to 90s for Render free tier cold start (~30-60s)
   headers: {
     'Content-Type': 'application/json',
   },
 });
+
+const COLD_START_STATUS_CODES = [502, 503, 504];
+const MAX_COLD_START_RETRIES = 8;
+const COLD_START_RETRY_DELAY_MS = 3000;
+
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 let isRefreshing = false;
 let failedQueue: Array<{
@@ -43,11 +50,15 @@ const processQueue = (error: unknown, token: string | null = null) => {
   failedQueue = [];
 };
 
-// Request interceptor: inject access token
+// Request interceptor: inject access token & track initial Render wake-up timer
 apiClient.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
+    if (!useServerStatusStore.getState().hasAcceptedFirstRequest) {
+      useServerStatusStore.getState().beginRequestTimer();
+    }
+
     const token = await secureStorage.getAccessToken();
-    if (token && config.headers) {
+    if (token && config.headers && !config.headers.Authorization) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
@@ -55,19 +66,41 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor: handle 401 with refresh queue & unwrap envelopes
+// Response interceptor: handle 401 with refresh queue, cold-start retries, & unwrap envelopes
 apiClient.interceptors.response.use(
   (response) => {
+    useServerStatusStore.getState().markFirstRequestAccepted();
     return response;
   },
   async (error: AxiosError<ApiErrorResponse>) => {
-    const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
+    const originalRequest = (error.config || {}) as AxiosRequestConfig & {
+      _retry?: boolean;
+      _coldRetryCount?: number;
+    };
+
+    const status = error.response?.status;
+
+    if (status && status < 500) {
+      useServerStatusStore.getState().markFirstRequestAccepted();
+    }
+
+    if (
+      status &&
+      COLD_START_STATUS_CODES.includes(status) &&
+      (originalRequest._coldRetryCount ?? 0) < MAX_COLD_START_RETRIES
+    ) {
+      originalRequest._coldRetryCount = (originalRequest._coldRetryCount ?? 0) + 1;
+      await delay(COLD_START_RETRY_DELAY_MS);
+      return apiClient(originalRequest);
+    }
 
     // Handle 401 Unauthorized / Token Expired
     if (error.response?.status === 401 && !originalRequest._retry) {
-      if (originalRequest.url?.includes('/auth/login') ||
-          originalRequest.url?.includes('/auth/signup') ||
-          originalRequest.url?.includes('/auth/refresh')) {
+      if (
+        originalRequest.url?.includes('/auth/login') ||
+        originalRequest.url?.includes('/auth/signup') ||
+        originalRequest.url?.includes('/auth/refresh')
+      ) {
         const errorData = error.response.data?.error;
         return Promise.reject(
           new ApiError(
@@ -103,7 +136,8 @@ apiClient.interceptors.response.use(
 
         const refreshRes = await axios.post<{ success: boolean; data: RefreshResponse }>(
           `${API_BASE_URL}/auth/refresh`,
-          { refreshToken }
+          { refreshToken },
+          { timeout: 90000 }
         );
 
         const { accessToken: newAccessToken, refreshToken: newRefreshToken } = refreshRes.data.data;
@@ -130,10 +164,12 @@ apiClient.interceptors.response.use(
     // Standardize error format
     const errorData = error.response?.data?.error;
     const statusCode = error.response?.status || 500;
-    const message = errorData?.message || error.message || 'An unexpected error occurred';
+    const isColdTimeout = !error.response && error.code === 'ECONNABORTED';
+    const message = isColdTimeout
+      ? 'Server is still waking up from sleep (Render free tier). Please try again.'
+      : errorData?.message || error.message || 'An unexpected error occurred';
     const code = errorData?.code || (statusCode === 404 ? 'NOT_FOUND' : 'INTERNAL');
 
     return Promise.reject(new ApiError(message, code, statusCode, errorData?.details));
   }
 );
-

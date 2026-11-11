@@ -14,8 +14,10 @@ export const authApi = {
     return res.data.data;
   },
 
-  async getMe(): Promise<AuthMeResponse> {
-    const res = await apiClient.get<ApiResponse<AuthMeResponse>>('/auth/me');
+  async getMe(accessToken?: string): Promise<AuthMeResponse> {
+    const res = await apiClient.get<ApiResponse<AuthMeResponse>>('/auth/me', {
+      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+    });
     return res.data.data;
   },
 

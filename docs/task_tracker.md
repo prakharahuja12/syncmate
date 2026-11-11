@@ -7,9 +7,9 @@
 
 ## 📌 Current Status & Active Focus
 
-- **Current Status**: Figma Frontend integration complete (`https://www.figma.com/make/ETkco2d1AJ3ONzdhuez5Sf/Create-a-Smooth-Website-Frontend`). Updated web client design system tokens, Syncmate capsule branding, Topbar search bar, Workspace/Manage sidebar navigation, and the full Dashboard layout matching Figma. 13/13 tests pass, 0 typecheck errors, production build verified.
-- **Active Focus**: Full-stack acceptance & cloud demonstration.
-- **Last Updated**: 2026-11-11
+- **Current Status**: Fixed login `"Session expired. Please log in again."` bug and implemented Render Free Tier cold-start wake-up timer & automatic retry resilience across Web (`web/`) and Mobile (`mobile/`). Web tests: 17/17 passing, Mobile tests: 22/22 passing, Typechecks: 0 errors, Web build verified.
+- **Active Focus**: Verifying live Render `/health` + `/auth/login` + `/auth/me` and pushing updates to GitHub (`main`) for Vercel auto-deploy.
+- **Last Updated**: 2026-11-12
 
 ---
 
@@ -17,9 +17,10 @@
 
 ### Production Verification & Maintenance
 - [x] **Backend API (Phases 1–9)**: Completed, 135/135 tests passing, Dockerised, pushed to git (`main`). Live on Render: `https://syncmate-2d9o.onrender.com`.
-- [x] **Mobile App (Phases 1–8)**: Completed, Expo SDK 52, strict TypeScript 0 errors, 18/18 tests passing, default URL pointed to Render backend.
-- [x] **Web Client (Phases 1–8)**: Completed, Vite + React 18 + Tailwind, strict TypeScript 0 errors, 13/13 tests passing, production build verified, default URL pointed to Render backend.
+- [x] **Mobile App (Phases 1–8)**: Completed, Expo SDK 52, strict TypeScript 0 errors, 22/22 tests passing, default URL pointed to Render backend.
+- [x] **Web Client (Phases 1–8)**: Completed, Vite + React 18 + Tailwind, strict TypeScript 0 errors, 17/17 tests passing, production build verified, default URL pointed to Render backend.
 - [x] **Figma Frontend Integration**: Extracted and implemented design from user Figma link (`Create-a-Smooth-Website-Frontend`) with mint teal tokens, digital countdown timer, stats cards, and schedule widgets.
+- [x] **Sign-In Token Sequencing Fix & Render Wake-up Timer**: Fixed `/auth/me` 401 race during login and added live cold-start timer + 90s timeout + 502/503 retries across Web and Mobile.
 - [x] **Database & Cloud Setup**: MongoDB Atlas cluster connected, `.env` configured with production credentials, 4 demo personas seeded (`DEMO1234`).
 - [x] **Vercel Deployment Configuration**: Added [`web/vercel.json`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/vercel.json) with SPA URL rewrites to prevent 404s on deep links.
 - [ ] **System Acceptance & Demo Walkthrough**: Run live web deployment and mobile client against the live Render API with seeded demo personas (`alex@demo.com`, etc.).
@@ -27,6 +28,19 @@
 ---
 
 ## 📜 What Was Done (Completed Work History)
+
+### [2026-11-12] - Login Session Fix & Render Free Tier Wake-Up Timer
+- **Root Cause Fix (`"Session expired. Please log in again."`)**:
+  - In [`web/src/features/auth/LoginPage.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/features/auth/LoginPage.tsx) and [`mobile/src/features/auth/LoginScreen.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/mobile/src/features/auth/LoginScreen.tsx), `authApi.getMe()` was invoked immediately after `authApi.login()` *before* `accessToken`/`refreshToken` were saved into the store/storage, causing `/auth/me` to be sent without an `Authorization` header (`401` -> refresh attempt with no refresh token -> `"Session expired. Please log in again."`).
+  - Updated `authApi.getMe(accessToken?)` in [`web/src/features/auth/api.ts`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/features/auth/api.ts) and [`mobile/src/features/auth/api.ts`](file:///c:/Users/prakh/OneDrive/Desktop/projects/mobile/src/features/auth/api.ts) and persisted `accessToken` + `refreshToken` before calling `getMe()`.
+- **Render Free Tier Cold-Start Timer & Resilience**:
+  - Created [`web/src/lib/serverStatus.ts`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/lib/serverStatus.ts) and [`mobile/src/lib/serverStatus.ts`](file:///c:/Users/prakh/OneDrive/Desktop/projects/mobile/src/lib/serverStatus.ts) with Zustand state (`useServerStatusStore`), 1s elapsed timer (`MM:SS`), and single-flight `/health` warmup loop retrying transient `502`/`503`/`504`/network errors up to 95s.
+  - Increased Axios client timeout from `15000`ms to `90000`ms and added `502`/`503`/`504` automatic retries in [`web/src/lib/api.ts`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/lib/api.ts) and [`mobile/src/lib/api.ts`](file:///c:/Users/prakh/OneDrive/Desktop/projects/mobile/src/lib/api.ts).
+  - Built [`web/src/components/common/ServerWakeupBanner.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/components/common/ServerWakeupBanner.tsx) and [`mobile/src/components/common/ServerWakeupBanner.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/mobile/src/components/common/ServerWakeupBanner.tsx), integrated into Login, Signup, and bootstrap loading screens (`App.tsx`, `router.tsx`, `RootNavigator.tsx`).
+  - Updated `LoginPage.tsx` and `SignupPage.tsx` with `<SyncmateLogo />` and Figma theme styling.
+- **Verification**:
+  - Web: `npm run typecheck` (0 errors), `npm test` (4 files, 17/17 tests passed including [`serverStatus.test.ts`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/__tests__/serverStatus.test.ts)), `npm run build` (built in 8.20s).
+  - Mobile: `npm run typecheck` (0 errors), `npm test` (4 suites, 22/22 tests passed including [`serverStatus.test.ts`](file:///c:/Users/prakh/OneDrive/Desktop/projects/mobile/__tests__/serverStatus.test.ts)).
 
 ### [2026-11-11] - Figma Frontend Design Integration
 - **Design Extraction & Metadata Inspection**:

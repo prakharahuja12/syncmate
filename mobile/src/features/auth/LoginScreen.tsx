@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -16,9 +16,16 @@ import { useTheme } from '../../theme/useTheme';
 import { SPACING, TYPOGRAPHY } from '../../theme/tokens';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
+import { ServerWakeupBanner } from '../../components/common/ServerWakeupBanner';
 import { loginSchema, LoginFormData } from './schema';
 import { authApi } from './api';
 import { useAuthStore } from '../../stores/authStore';
+import { secureStorage } from '../../lib/secureStorage';
+import {
+  formatElapsedTimer,
+  startServerWarmup,
+  useServerStatusStore,
+} from '../../lib/serverStatus';
 import { initSocket } from '../../lib/socket';
 import { registerForPushNotifications } from '../../lib/push';
 
@@ -27,8 +34,16 @@ type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 export const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const { theme } = useTheme();
   const setSession = useAuthStore((s) => s.setSession);
+  const clearSession = useAuthStore((s) => s.clearSession);
   const [serverError, setServerError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  const hasAcceptedFirstRequest = useServerStatusStore((s) => s.hasAcceptedFirstRequest);
+  const elapsedSeconds = useServerStatusStore((s) => s.elapsedSeconds);
+
+  useEffect(() => {
+    void startServerWarmup();
+  }, []);
 
   const {
     control,
@@ -47,18 +62,29 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
     setServerError(null);
     try {
       const res = await authApi.login(data);
+      // Persist tokens BEFORE calling getMe() so Authorization header & refresh work
+      await secureStorage.setAccessToken(res.accessToken);
+      await secureStorage.setRefreshToken(res.refreshToken);
+
       // Fetch full me data with group info
-      const meRes = await authApi.getMe();
-      await setSession(res.user, meRes.group, res.accessToken, res.refreshToken);
+      const meRes = await authApi.getMe(res.accessToken);
+      await setSession(meRes.user, meRes.group, res.accessToken, res.refreshToken);
 
       await initSocket();
       registerForPushNotifications();
     } catch (err: any) {
+      await clearSession();
       setServerError(err.message || 'Login failed. Please verify credentials.');
     } finally {
       setIsLoading(false);
     }
   };
+
+  const buttonTitle = isLoading
+    ? !hasAcceptedFirstRequest && elapsedSeconds >= 2
+      ? `Waking server (${formatElapsedTimer(elapsedSeconds)})...`
+      : 'Signing in...'
+    : 'Sign in';
 
   return (
     <KeyboardAvoidingView
@@ -76,6 +102,8 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
             Sign in to access your shared group calendar
           </Text>
         </View>
+
+        <ServerWakeupBanner />
 
         {serverError && (
           <View style={[styles.errorBox, { backgroundColor: `${theme.destructive}1A`, borderColor: theme.destructive }]}>
@@ -122,7 +150,7 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
         />
 
         <Button
-          title="Sign in"
+          title={buttonTitle}
           onPress={handleSubmit(onSubmit)}
           loading={isLoading}
           variant="primary"

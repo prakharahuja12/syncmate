@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -16,9 +16,15 @@ import { useTheme } from '../../theme/useTheme';
 import { SPACING, TYPOGRAPHY } from '../../theme/tokens';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
+import { ServerWakeupBanner } from '../../components/common/ServerWakeupBanner';
 import { signupSchema, SignupFormData } from './schema';
 import { authApi } from './api';
 import { useAuthStore } from '../../stores/authStore';
+import {
+  formatElapsedTimer,
+  startServerWarmup,
+  useServerStatusStore,
+} from '../../lib/serverStatus';
 import { initSocket } from '../../lib/socket';
 import { registerForPushNotifications } from '../../lib/push';
 
@@ -29,6 +35,13 @@ export const SignupScreen: React.FC<Props> = ({ navigation }) => {
   const setSession = useAuthStore((s) => s.setSession);
   const [serverError, setServerError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  const hasAcceptedFirstRequest = useServerStatusStore((s) => s.hasAcceptedFirstRequest);
+  const elapsedSeconds = useServerStatusStore((s) => s.elapsedSeconds);
+
+  useEffect(() => {
+    void startServerWarmup();
+  }, []);
 
   const {
     control,
@@ -59,6 +72,12 @@ export const SignupScreen: React.FC<Props> = ({ navigation }) => {
     }
   };
 
+  const buttonTitle = isLoading
+    ? !hasAcceptedFirstRequest && elapsedSeconds >= 2
+      ? `Waking server (${formatElapsedTimer(elapsedSeconds)})...`
+      : 'Creating account...'
+    : 'Create account';
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -75,6 +94,8 @@ export const SignupScreen: React.FC<Props> = ({ navigation }) => {
             Join your team or create a new group calendar
           </Text>
         </View>
+
+        <ServerWakeupBanner />
 
         {serverError && (
           <View style={[styles.errorBox, { backgroundColor: `${theme.destructive}1A`, borderColor: theme.destructive }]}>
@@ -139,7 +160,7 @@ export const SignupScreen: React.FC<Props> = ({ navigation }) => {
         />
 
         <Button
-          title="Create account"
+          title={buttonTitle}
           onPress={handleSubmit(onSubmit)}
           loading={isLoading}
           variant="primary"

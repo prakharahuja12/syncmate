@@ -19,6 +19,8 @@ import { useUiStore } from '../stores/uiStore';
 import { useTheme } from '../theme/useTheme';
 import { authApi } from '../features/auth/api';
 import { secureStorage } from '../lib/secureStorage';
+import { startServerWarmup } from '../lib/serverStatus';
+import { ServerWakeupBanner } from '../components/common/ServerWakeupBanner';
 import { initSocket } from '../lib/socket';
 import { setupNotificationListeners } from '../lib/push';
 
@@ -36,11 +38,18 @@ export const RootNavigator: React.FC = () => {
   useEffect(() => {
     let isMounted = true;
 
-    // Bootstrapping auth
+    // Bootstrapping auth & waking up Render server
     const bootstrap = async () => {
       try {
+        const warmup = startServerWarmup();
         const refreshToken = await secureStorage.getRefreshToken();
         if (!refreshToken) {
+          if (isMounted) setIsBootstrapping(false);
+          return;
+        }
+
+        const awake = await warmup;
+        if (!awake) {
           if (isMounted) setIsBootstrapping(false);
           return;
         }
@@ -71,6 +80,9 @@ export const RootNavigator: React.FC = () => {
     return (
       <View style={[styles.bootContainer, { backgroundColor: theme.bg }]}>
         <ActivityIndicator size="large" color={theme.primary} />
+        <View style={styles.bootBannerWrap}>
+          <ServerWakeupBanner />
+        </View>
       </View>
     );
   }
@@ -156,5 +168,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  bootBannerWrap: {
+    width: '100%',
+    maxWidth: 360,
+    marginTop: 20,
   },
 });

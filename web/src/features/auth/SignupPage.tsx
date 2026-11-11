@@ -6,15 +6,29 @@ import { toast } from 'sonner';
 import { signupSchema, SignupFormData } from './schema';
 import { authApi } from './api';
 import { useAuthStore } from '../../stores/authStore';
+import {
+  formatElapsedTimer,
+  startServerWarmup,
+  useServerStatusStore,
+} from '../../lib/serverStatus';
 import { Input } from '../../components/ui/input';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
+import { SyncmateLogo } from '../../components/common/SyncmateLogo';
+import { ServerWakeupBanner } from '../../components/common/ServerWakeupBanner';
 import { initSocket } from '../../lib/socket';
 
 export const SignupPage: React.FC = () => {
   const navigate = useNavigate();
   const setSession = useAuthStore((s) => s.setSession);
   const [serverError, setServerError] = React.useState<string | null>(null);
+
+  const hasAcceptedFirstRequest = useServerStatusStore((s) => s.hasAcceptedFirstRequest);
+  const elapsedSeconds = useServerStatusStore((s) => s.elapsedSeconds);
+
+  React.useEffect(() => {
+    void startServerWarmup();
+  }, []);
 
   const {
     register,
@@ -38,17 +52,25 @@ export const SignupPage: React.FC = () => {
     }
   };
 
+  const submitLabel = isSubmitting
+    ? !hasAcceptedFirstRequest && elapsedSeconds >= 2
+      ? `Waking server (${formatElapsedTimer(elapsedSeconds)})...`
+      : 'Creating account...'
+    : 'Create account';
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12 select-none">
-      <Card className="w-full max-w-sm p-6 sm:p-8 border-border shadow-xl">
-        <div className="text-center mb-6">
-          <span className="text-3xl">📅</span>
-          <h2 className="text-xl font-bold text-foreground mt-2">Create an account</h2>
+      <Card className="w-full max-w-sm p-6 sm:p-8 bg-card border-border rounded-2xl shadow-xl">
+        <div className="flex flex-col items-center text-center mb-6">
+          <SyncmateLogo size="lg" />
+          <h2 className="text-xl font-bold text-foreground mt-4">Create an account</h2>
           <p className="text-xs text-muted mt-1">Start collaborating on a single shared calendar</p>
         </div>
 
+        <ServerWakeupBanner className="mb-4" />
+
         {serverError && (
-          <div className="mb-4 rounded-md border border-priority-high/40 bg-priority-high/10 p-3 text-xs font-semibold text-priority-high">
+          <div className="mb-4 rounded-xl border border-priority-high/40 bg-priority-high/10 p-3 text-xs font-semibold text-priority-high">
             {serverError}
           </div>
         )}
@@ -78,8 +100,12 @@ export const SignupPage: React.FC = () => {
             {...register('password')}
           />
 
-          <Button type="submit" loading={isSubmitting} className="w-full">
-            Create account
+          <Button
+            type="submit"
+            loading={isSubmitting}
+            className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold rounded-xl"
+          >
+            {submitLabel}
           </Button>
         </form>
 
@@ -93,4 +119,3 @@ export const SignupPage: React.FC = () => {
     </div>
   );
 };
-

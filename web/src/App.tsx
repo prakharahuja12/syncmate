@@ -9,6 +9,7 @@ import { useAuthStore } from './stores/authStore';
 import { useUiStore } from './stores/uiStore';
 import { tokenStorage } from './lib/tokenStorage';
 import { API_BASE_URL } from './lib/constants';
+import { startServerWarmup, useServerStatusStore } from './lib/serverStatus';
 import { authApi } from './features/auth/api';
 import { RefreshResponse } from './types/api';
 
@@ -30,9 +31,12 @@ export const App: React.FC = () => {
     }
   }, [theme]);
 
-  // Session bootstrap
+  // Session bootstrap & proactive Render server wake-up
   React.useEffect(() => {
     const bootstrap = async () => {
+      // Begin waking up Render free-tier server immediately in parallel
+      const warmup = startServerWarmup();
+
       const refreshToken = tokenStorage.getRefreshToken();
       if (!refreshToken) {
         clearSession();
@@ -40,25 +44,34 @@ export const App: React.FC = () => {
       }
 
       try {
+        // Wait for Render container to accept its first request before refreshing
+        const awake = await warmup;
+        if (!awake) {
+          setIsBootstrapping(false);
+          return;
+        }
+
         // Exchange refresh token for fresh access token
         const refreshRes = await axios.post<{ success: boolean; data: RefreshResponse }>(
           `${API_BASE_URL}/auth/refresh`,
-          { refreshToken }
+          { refreshToken },
+          { timeout: 90000 }
         );
+        useServerStatusStore.getState().markFirstRequestAccepted();
 
         const { accessToken, refreshToken: newRefreshToken } = refreshRes.data.data;
         useAuthStore.getState().setAccessToken(accessToken);
         tokenStorage.setRefreshToken(newRefreshToken);
 
         // Fetch current user and group profile
-        const meRes = await authApi.getMe();
+        const meRes = await authApi.getMe(accessToken);
         setSession(meRes.user, meRes.group, accessToken, newRefreshToken);
       } catch (err) {
         clearSession();
       }
     };
 
-    bootstrap();
+    void bootstrap();
   }, [setSession, clearSession, setIsBootstrapping]);
 
   return (
@@ -68,4 +81,3 @@ export const App: React.FC = () => {
     </QueryClientProvider>
   );
 };
-

@@ -47,3 +47,4 @@ export const SyncmateLogo: React.FC<SyncmateLogoProps> = ({
     </div>
   );
 };
+

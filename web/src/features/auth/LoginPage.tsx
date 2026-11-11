@@ -6,15 +6,31 @@ import { toast } from 'sonner';
 import { loginSchema, LoginFormData } from './schema';
 import { authApi } from './api';
 import { useAuthStore } from '../../stores/authStore';
+import { tokenStorage } from '../../lib/tokenStorage';
+import {
+  formatElapsedTimer,
+  startServerWarmup,
+  useServerStatusStore,
+} from '../../lib/serverStatus';
 import { Input } from '../../components/ui/input';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
+import { SyncmateLogo } from '../../components/common/SyncmateLogo';
+import { ServerWakeupBanner } from '../../components/common/ServerWakeupBanner';
 import { initSocket } from '../../lib/socket';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const setSession = useAuthStore((s) => s.setSession);
+  const clearSession = useAuthStore((s) => s.clearSession);
   const [serverError, setServerError] = React.useState<string | null>(null);
+
+  const hasAcceptedFirstRequest = useServerStatusStore((s) => s.hasAcceptedFirstRequest);
+  const elapsedSeconds = useServerStatusStore((s) => s.elapsedSeconds);
+
+  React.useEffect(() => {
+    void startServerWarmup();
+  }, []);
 
   const {
     register,
@@ -28,11 +44,15 @@ export const LoginPage: React.FC = () => {
     setServerError(null);
     try {
       const res = await authApi.login(data);
-      const meRes = await authApi.getMe();
-      setSession(res.user, meRes.group, res.accessToken, res.refreshToken);
+      // Persist access & refresh tokens BEFORE calling getMe() so Authorization is attached
+      useAuthStore.getState().setAccessToken(res.accessToken);
+      tokenStorage.setRefreshToken(res.refreshToken);
+
+      const meRes = await authApi.getMe(res.accessToken);
+      setSession(meRes.user, meRes.group, res.accessToken, res.refreshToken);
 
       initSocket();
-      toast.success(`Welcome back, ${res.user.name}!`);
+      toast.success(`Welcome back, ${meRes.user.name}!`);
 
       if (!meRes.group) {
         navigate('/onboarding');
@@ -40,21 +60,30 @@ export const LoginPage: React.FC = () => {
         navigate('/');
       }
     } catch (err: any) {
+      clearSession();
       setServerError(err.message || 'Invalid email or password');
     }
   };
 
+  const submitLabel = isSubmitting
+    ? !hasAcceptedFirstRequest && elapsedSeconds >= 2
+      ? `Waking server (${formatElapsedTimer(elapsedSeconds)})...`
+      : 'Signing in...'
+    : 'Sign in';
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12 select-none">
-      <Card className="w-full max-w-sm p-6 sm:p-8 border-border shadow-xl">
-        <div className="text-center mb-6">
-          <span className="text-3xl">📅</span>
-          <h2 className="text-xl font-bold text-foreground mt-2">Sign in to SyncMate</h2>
+      <Card className="w-full max-w-sm p-6 sm:p-8 bg-card border-border rounded-2xl shadow-xl">
+        <div className="flex flex-col items-center text-center mb-6">
+          <SyncmateLogo size="lg" />
+          <h2 className="text-xl font-bold text-foreground mt-4">Sign in to SyncMate</h2>
           <p className="text-xs text-muted mt-1">Shared group calendar for fast-moving teams</p>
         </div>
 
+        <ServerWakeupBanner className="mb-4" />
+
         {serverError && (
-          <div className="mb-4 rounded-md border border-priority-high/40 bg-priority-high/10 p-3 text-xs font-semibold text-priority-high">
+          <div className="mb-4 rounded-xl border border-priority-high/40 bg-priority-high/10 p-3 text-xs font-semibold text-priority-high">
             {serverError}
           </div>
         )}
@@ -76,8 +105,12 @@ export const LoginPage: React.FC = () => {
             {...register('password')}
           />
 
-          <Button type="submit" loading={isSubmitting} className="w-full">
-            Sign in
+          <Button
+            type="submit"
+            loading={isSubmitting}
+            className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold rounded-xl"
+          >
+            {submitLabel}
           </Button>
         </form>
 
@@ -91,4 +124,3 @@ export const LoginPage: React.FC = () => {
     </div>
   );
 };
-
