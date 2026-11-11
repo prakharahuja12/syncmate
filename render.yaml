@@ -17,6 +17,12 @@ services:
         generateValue: true
       - key: ENCRYPTION_KEY
         generateValue: true
+      - key: WEB_URL
+        value: https://syncmate-one.vercel.app
+      - key: API_URL
+        value: https://syncmate-2d9o.onrender.com
       - key: CORS_ORIGINS
-        value: "*"
+        value: "https://syncmate-one.vercel.app,http://localhost:5173,*"
+      - key: GOOGLE_REDIRECT_URI
+        value: https://syncmate-2d9o.onrender.com/api/v1/integrations/google/callback
 

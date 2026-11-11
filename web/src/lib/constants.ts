@@ -1,8 +1,19 @@
-export const API_BASE_URL =
-  import.meta.env.VITE_API_URL || 'https://syncmate-2d9o.onrender.com/api/v1';
+const stripTrailingSlash = (url: string): string => url.trim().replace(/\/+$/, '');
 
-export const SOCKET_URL =
-  import.meta.env.VITE_SOCKET_URL || 'https://syncmate-2d9o.onrender.com';
+export const API_BASE_URL = stripTrailingSlash(
+  import.meta.env.VITE_API_URL || 'https://syncmate-2d9o.onrender.com/api/v1'
+);
+
+export const SOCKET_URL = stripTrailingSlash(
+  import.meta.env.VITE_SOCKET_URL || 'https://syncmate-2d9o.onrender.com'
+);
+
+export const WEB_URL = stripTrailingSlash(
+  import.meta.env.VITE_WEB_URL ||
+    (typeof window !== 'undefined' && window.location?.origin
+      ? window.location.origin
+      : 'https://syncmate-one.vercel.app')
+);
 
 export const CATEGORY_COLORS = {
   hackathon: '#8E4EC6',

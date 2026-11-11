@@ -1,15 +1,16 @@
-import { Platform } from 'react-native';
+const stripTrailingSlash = (url: string): string => url.trim().replace(/\/+$/, '');
 
-const DEFAULT_LOCAL_HOST = Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
+export const API_BASE_URL = stripTrailingSlash(
+  process.env.EXPO_PUBLIC_API_URL || 'https://syncmate-2d9o.onrender.com/api/v1'
+);
 
-export const API_BASE_URL =
-  process.env.EXPO_PUBLIC_API_URL || 'https://syncmate-2d9o.onrender.com/api/v1';
+export const SOCKET_URL = stripTrailingSlash(
+  process.env.EXPO_PUBLIC_SOCKET_URL || 'https://syncmate-2d9o.onrender.com'
+);
 
-export const SOCKET_URL =
-  process.env.EXPO_PUBLIC_SOCKET_URL || 'https://syncmate-2d9o.onrender.com';
-
-export const WEB_URL =
-  process.env.EXPO_PUBLIC_WEB_URL || 'https://syncmate.app';
+export const WEB_URL = stripTrailingSlash(
+  process.env.EXPO_PUBLIC_WEB_URL || 'https://syncmate-one.vercel.app'
+);
 
 export const SECURE_KEYS = {
   ACCESS_TOKEN: 'syncmate_access_token',

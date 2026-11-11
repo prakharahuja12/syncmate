@@ -5,7 +5,7 @@ import { RootStackParamList } from './types';
 const prefix = Linking.createURL('/');
 
 export const linking: LinkingOptions<RootStackParamList> = {
-  prefixes: [prefix, 'syncmate://', 'https://syncmate.app'],
+  prefixes: [prefix, 'syncmate://', 'https://syncmate-one.vercel.app', 'https://syncmate.app'],
   config: {
     screens: {
       Onboarding: {

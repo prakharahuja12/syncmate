@@ -7,8 +7,8 @@
 
 ## 📌 Current Status & Active Focus
 
-- **Current Status**: Fixed login `"Session expired. Please log in again."` bug and implemented Render Free Tier cold-start wake-up timer & automatic retry resilience across Web (`web/`) and Mobile (`mobile/`). Web tests: 17/17 passing, Mobile tests: 22/22 passing, Typechecks: 0 errors, Web build verified.
-- **Active Focus**: Verifying live Render `/health` + `/auth/login` + `/auth/me` and pushing updates to GitHub (`main`) for Vercel auto-deploy.
+- **Current Status**: Connected Render backend (`https://syncmate-2d9o.onrender.com`) and Vercel frontend (`https://syncmate-one.vercel.app`) end-to-end across Backend CORS, Socket.IO, OAuth/Notification URLs, Web constants, and Mobile deep links.
+- **Active Focus**: Verifying all backend/web/mobile test suites and pushing production configuration to GitHub (`main`).
 - **Last Updated**: 2026-11-12
 
 ---
@@ -16,7 +16,7 @@
 ## 📋 What Will You Do (Planned Next Steps)
 
 ### Production Verification & Maintenance
-- [x] **Backend API (Phases 1–9)**: Completed, 135/135 tests passing, Dockerised, pushed to git (`main`). Live on Render: `https://syncmate-2d9o.onrender.com`.
+- [x] **Backend API (Phases 1–9)**: Completed, 138/138 tests passing, Dockerised, pushed to git (`main`). Live on Render: `https://syncmate-2d9o.onrender.com`.
 - [x] **Mobile App (Phases 1–8)**: Completed, Expo SDK 52, strict TypeScript 0 errors, 22/22 tests passing, default URL pointed to Render backend.
 - [x] **Web Client (Phases 1–8)**: Completed, Vite + React 18 + Tailwind, strict TypeScript 0 errors, 17/17 tests passing, production build verified, default URL pointed to Render backend.
 - [x] **Figma Frontend Integration**: Extracted and implemented design from user Figma link (`Create-a-Smooth-Website-Frontend`) with mint teal tokens, digital countdown timer, stats cards, and schedule widgets.
@@ -28,6 +28,17 @@
 ---
 
 ## 📜 What Was Done (Completed Work History)
+
+### [2026-11-12] - Render (`syncmate-2d9o.onrender.com`) & Vercel (`syncmate-one.vercel.app`) Integration
+- **Backend CORS, Socket.IO & Environment Defaults**:
+  - Updated [`src/config/env.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/config/env.js) to normalize trailing slashes, set production defaults (`WEB_URL=https://syncmate-one.vercel.app`, `API_URL=https://syncmate-2d9o.onrender.com`, `GOOGLE_REDIRECT_URI=https://syncmate-2d9o.onrender.com/api/v1/integrations/google/callback`), and export shared `isOriginAllowed(origin)` helper supporting `syncmate-one.vercel.app` and `syncmate-*.vercel.app` preview URLs.
+  - Updated [`src/app.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/app.js) and [`src/realtime/socket.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/realtime/socket.js) to use `isOriginAllowed(origin)` so both REST CORS and Socket.IO polling/WebSocket handshakes dynamically reflect allowed Vercel origins with `credentials: true`.
+  - Updated [`render.yaml`](file:///c:/Users/prakh/OneDrive/Desktop/projects/render.yaml) and [`.env.production`](file:///c:/Users/prakh/OneDrive/Desktop/projects/.env.production) with explicit `WEB_URL`, `API_URL`, `CORS_ORIGINS`, and `GOOGLE_REDIRECT_URI`.
+- **Web & Mobile Link Alignment**:
+  - Normalized trailing slashes in [`web/src/lib/constants.ts`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/lib/constants.ts) and [`mobile/src/lib/constants.ts`](file:///c:/Users/prakh/OneDrive/Desktop/projects/mobile/src/lib/constants.ts); updated `WEB_URL` default and `.env` files to `https://syncmate-one.vercel.app`.
+  - Updated [`mobile/app.json`](file:///c:/Users/prakh/OneDrive/Desktop/projects/mobile/app.json) Android `intentFilters` and [`mobile/src/navigation/linking.ts`](file:///c:/Users/prakh/OneDrive/Desktop/projects/mobile/src/navigation/linking.ts) to support `https://syncmate-one.vercel.app/join`.
+- **Verification**:
+  - Added [`tests/cors.test.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/tests/cors.test.js) and verified Backend (`13/13` suites, `138/138` tests), Web (`4/4` files, `17/17` tests + production build), and Mobile (`4/4` suites, `22/22` tests + typecheck).
 
 ### [2026-11-12] - Login Session Fix & Render Free Tier Wake-Up Timer
 - **Root Cause Fix (`"Session expired. Please log in again."`)**:

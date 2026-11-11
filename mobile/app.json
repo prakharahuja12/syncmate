@@ -38,6 +38,11 @@
           "data": [
             {
               "scheme": "https",
+              "host": "syncmate-one.vercel.app",
+              "pathPrefix": "/join"
+            },
+            {
+              "scheme": "https",
               "host": "syncmate.app",
               "pathPrefix": "/join"
             },

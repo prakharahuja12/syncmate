@@ -2,17 +2,43 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+const stripTrailingSlash = (url) => (url ? url.trim().replace(/\/+$/, '') : '');
+
+const nodeEnv = process.env.NODE_ENV || 'development';
+const isProd = nodeEnv === 'production';
+
+const webUrl = stripTrailingSlash(
+  process.env.WEB_URL || (isProd ? 'https://syncmate-one.vercel.app' : 'http://localhost:5173')
+);
+const apiUrl = stripTrailingSlash(
+  process.env.API_URL || (isProd ? 'https://syncmate-2d9o.onrender.com' : 'http://localhost:5000')
+);
+
 const parseCorsOrigins = (raw) => {
-  if (!raw) return ['http://localhost:5173'];
-  return raw.split(',').map((origin) => origin.trim()).filter(Boolean);
+  const defaults = isProd
+    ? [webUrl, 'https://syncmate-one.vercel.app', 'http://localhost:5173']
+    : ['http://localhost:5173'];
+
+  const parsed = raw
+    ? raw
+        .split(',')
+        .map((origin) => stripTrailingSlash(origin))
+        .filter(Boolean)
+    : defaults;
+
+  if (!parsed.includes('*') && webUrl && !parsed.includes(webUrl)) {
+    parsed.push(webUrl);
+  }
+
+  return Array.from(new Set(parsed));
 };
 
 export const env = {
-  NODE_ENV: process.env.NODE_ENV || 'development',
+  NODE_ENV: nodeEnv,
   PORT: parseInt(process.env.PORT || '5000', 10),
   MONGO_URI: process.env.MONGO_URI || 'mongodb://localhost:27017/syncmate',
-  WEB_URL: process.env.WEB_URL || 'http://localhost:5173',
-  API_URL: process.env.API_URL || 'http://localhost:5000',
+  WEB_URL: webUrl,
+  API_URL: apiUrl,
   CORS_ORIGINS: parseCorsOrigins(process.env.CORS_ORIGINS),
   JWT_ACCESS_SECRET:
     process.env.JWT_ACCESS_SECRET || 'dev_jwt_access_secret_syncmate_minimum_32_characters_long',
@@ -34,6 +60,22 @@ export const env = {
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || '',
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || '',
   GOOGLE_REDIRECT_URI:
-    process.env.GOOGLE_REDIRECT_URI ||
-    'http://localhost:5000/api/v1/integrations/google/callback',
+    stripTrailingSlash(process.env.GOOGLE_REDIRECT_URI) ||
+    `${apiUrl}/api/v1/integrations/google/callback`,
+};
+
+/**
+ * Checks whether an incoming Origin header is allowed for Express REST & Socket.IO CORS.
+ * Normalizes trailing slashes and permits SyncMate Vercel production & preview URLs.
+ */
+export const isOriginAllowed = (origin, allowedOrigins = env.CORS_ORIGINS) => {
+  if (!origin) return true;
+  const normalized = stripTrailingSlash(origin);
+  if (allowedOrigins.includes('*') || allowedOrigins.includes(normalized)) {
+    return true;
+  }
+  if (/^https:\/\/syncmate-[a-z0-9-]+\.vercel\.app$/i.test(normalized)) {
+    return true;
+  }
+  return false;
 };

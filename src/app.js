@@ -4,7 +4,7 @@ import cors from 'cors';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import { pinoHttp } from 'pino-http';
-import { env } from './config/env.js';
+import { env, isOriginAllowed } from './config/env.js';
 import { logger } from './config/logger.js';
 import { generalRateLimiter } from './middleware/rateLimit.js';
 import { errorHandler } from './middleware/errorHandler.js';
@@ -25,14 +25,11 @@ export const createApp = () => {
   // Security headers
   app.use(helmet());
 
-  // CORS configuration
-  const corsOrigins = env.CORS_ORIGINS;
+  // CORS configuration (reflects allowed origins including Vercel frontend & previews)
   app.use(
     cors({
       origin: (origin, callback) => {
-        // Allow requests with no origin (like mobile apps, curl, postman)
-        if (!origin) return callback(null, true);
-        if (corsOrigins.includes('*') || corsOrigins.includes(origin)) {
+        if (isOriginAllowed(origin)) {
           return callback(null, true);
         }
         return callback(new Error('Origin not allowed by CORS'));
