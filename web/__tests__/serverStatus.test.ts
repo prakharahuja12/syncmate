@@ -75,3 +75,4 @@ describe('Render Cold-Start Server Status & Timer', () => {
     expect(useServerStatusStore.getState().status).toBe('ready');
   });
 });
+

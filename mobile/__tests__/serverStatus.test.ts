@@ -71,3 +71,4 @@ describe('Mobile Render Cold-Start Server Status & Timer', () => {
     expect(useServerStatusStore.getState().hasAcceptedFirstRequest).toBe(true);
   });
 });
+
