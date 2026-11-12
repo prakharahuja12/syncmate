@@ -13,8 +13,6 @@ import {
   MoreHorizontal,
   Flame,
   Check,
-  ExternalLink,
-  Eye,
 } from 'lucide-react';
 import { dashboardApi } from './api';
 import { eventsApi } from '../events/api';
@@ -23,6 +21,7 @@ import { useDismissibleMenu } from '../../lib/useDismissibleMenu';
 import { formatDate, formatTime, formatDeadlineCountdown } from '../../lib/dates';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
+import { TaskActionMenu } from '../../components/common/TaskActionMenu';
 import { EventDetailsDrawer } from '../events/EventDetailsDrawer';
 import { EventDialog } from '../events/EventDialog';
 
@@ -226,11 +225,13 @@ export const DashboardPage: React.FC = () => {
       {/* 3. Middle Row: Next High Priority Hero & Today's Schedule */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Next High-Priority Card */}
-        <div className="rounded-2xl border border-[#222E3C] border-t-2 border-t-amber-500/70 bg-[#161F28] p-6 flex flex-col justify-between shadow-sm relative overflow-hidden">
-          {/* Subtle background glow */}
-          <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="rounded-2xl border border-[#222E3C] border-t-2 border-t-amber-500/70 bg-[#161F28] p-6 flex flex-col justify-between shadow-sm relative">
+          {/* Subtle background glow clipped inside its own layer */}
+          <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
+            <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl" />
+          </div>
 
-          <div>
+          <div className="relative z-10">
             {/* Header Tag & Menu */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
@@ -239,102 +240,93 @@ export const DashboardPage: React.FC = () => {
                   Next High Priority
                 </span>
               </div>
-              <div ref={heroMenu.containerRef} className="relative">
-                <button
-                  type="button"
-                  onClick={heroMenu.toggle}
-                  aria-label="Next high priority options"
-                  aria-expanded={heroMenu.isOpen}
-                  aria-haspopup="menu"
-                  className="text-muted hover:text-foreground hover:bg-surface p-1.5 rounded-lg transition-colors cursor-pointer"
-                >
-                  <MoreHorizontal className="h-4 w-4" />
-                </button>
 
-                {heroMenu.isOpen && (
-                  <div
-                    role="menu"
-                    className="absolute right-0 top-full mt-1.5 z-40 w-52 rounded-xl border border-border bg-card shadow-xl p-1.5 space-y-1"
+              {nextHighPriority ? (
+                <TaskActionMenu
+                  event={nextHighPriority}
+                  ariaLabel="Next high priority options"
+                  onViewDetails={(id) => setSelectedEventId(id)}
+                  onToggleComplete={(evt) =>
+                    completeMutation.mutate({
+                      eventId: evt.id,
+                      isCompleted: evt.status === 'completed',
+                    })
+                  }
+                  extraItems={(closeMenu) => (
+                    <>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => {
+                          closeMenu();
+                          navigate('/tasks');
+                        }}
+                        className="w-full flex items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-medium text-foreground hover:bg-surface transition-colors cursor-pointer"
+                      >
+                        <Flame className="h-3.5 w-3.5 text-amber-400" />
+                        <span>All high-priority tasks</span>
+                      </button>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => {
+                          closeMenu();
+                          setIsCreateOpen(true);
+                        }}
+                        className="w-full flex items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-medium text-primary hover:bg-surface transition-colors cursor-pointer"
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                        <span>New event</span>
+                      </button>
+                    </>
+                  )}
+                />
+              ) : (
+                <div ref={heroMenu.containerRef} className="relative">
+                  <button
+                    type="button"
+                    onClick={heroMenu.toggle}
+                    aria-label="Next high priority options"
+                    aria-expanded={heroMenu.isOpen}
+                    aria-haspopup="menu"
+                    className="text-muted hover:text-foreground hover:bg-surface p-1.5 rounded-lg transition-colors cursor-pointer"
                   >
-                    {nextHighPriority && (
-                      <>
-                        <button
-                          type="button"
-                          role="menuitem"
-                          onClick={() => {
-                            heroMenu.close();
-                            setSelectedEventId(nextHighPriority.id);
-                          }}
-                          className="w-full flex items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-medium text-foreground hover:bg-surface transition-colors cursor-pointer"
-                        >
-                          <Eye className="h-3.5 w-3.5 text-muted" />
-                          <span>View event details</span>
-                        </button>
-                        {(nextHighPriority.primaryUrl ||
-                          nextHighPriority.hackathon?.registrationUrl) && (
-                          <a
-                            href={
-                              nextHighPriority.primaryUrl ||
-                              nextHighPriority.hackathon?.registrationUrl
-                            }
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={heroMenu.close}
-                            className="w-full flex items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-medium text-foreground hover:bg-surface transition-colors"
-                          >
-                            <ExternalLink className="h-3.5 w-3.5 text-muted" />
-                            <span>Open registration page</span>
-                          </a>
-                        )}
-                        <button
-                          type="button"
-                          role="menuitem"
-                          onClick={() => {
-                            heroMenu.close();
-                            completeMutation.mutate({
-                              eventId: nextHighPriority.id,
-                              isCompleted: nextHighPriority.status === 'completed',
-                            });
-                          }}
-                          className="w-full flex items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-medium text-foreground hover:bg-surface transition-colors cursor-pointer"
-                        >
-                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
-                          <span>
-                            {nextHighPriority.status === 'completed'
-                              ? 'Mark active'
-                              : 'Mark complete'}
-                          </span>
-                        </button>
-                        <div className="my-1 border-t border-border/70" />
-                      </>
-                    )}
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={() => {
-                        heroMenu.close();
-                        navigate('/tasks');
-                      }}
-                      className="w-full flex items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-medium text-foreground hover:bg-surface transition-colors cursor-pointer"
+                    <MoreHorizontal className="h-4 w-4" />
+                  </button>
+
+                  {heroMenu.isOpen && (
+                    <div
+                      role="menu"
+                      className="absolute right-0 top-full mt-1.5 z-50 w-52 rounded-xl border border-border bg-card shadow-xl p-1.5 space-y-1"
                     >
-                      <Flame className="h-3.5 w-3.5 text-amber-400" />
-                      <span>All high-priority tasks</span>
-                    </button>
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={() => {
-                        heroMenu.close();
-                        setIsCreateOpen(true);
-                      }}
-                      className="w-full flex items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-medium text-primary hover:bg-surface transition-colors cursor-pointer"
-                    >
-                      <Plus className="h-3.5 w-3.5" />
-                      <span>New event</span>
-                    </button>
-                  </div>
-                )}
-              </div>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => {
+                          heroMenu.close();
+                          navigate('/tasks');
+                        }}
+                        className="w-full flex items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-medium text-foreground hover:bg-surface transition-colors cursor-pointer"
+                      >
+                        <Flame className="h-3.5 w-3.5 text-amber-400" />
+                        <span>All high-priority tasks</span>
+                      </button>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => {
+                          heroMenu.close();
+                          setIsCreateOpen(true);
+                        }}
+                        className="w-full flex items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-medium text-primary hover:bg-surface transition-colors cursor-pointer"
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                        <span>New event</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Category badge */}
@@ -619,6 +611,19 @@ export const DashboardPage: React.FC = () => {
                     <div className="flex h-5 w-5 items-center justify-center rounded-full bg-surface border border-border text-[9px] font-bold text-foreground">
                       {t.createdBy?.name?.charAt(0) || t.assignee || 'U'}
                     </div>
+                    {isReal && (
+                      <TaskActionMenu
+                        event={t}
+                        ariaLabel={`Actions for ${t.title}`}
+                        onViewDetails={(id) => setSelectedEventId(id)}
+                        onToggleComplete={(evt) =>
+                          completeMutation.mutate({
+                            eventId: evt.id,
+                            isCompleted: evt.status === 'completed',
+                          })
+                        }
+                      />
+                    )}
                   </div>
                 </div>
               );

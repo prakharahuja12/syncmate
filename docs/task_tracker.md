@@ -7,8 +7,8 @@
 
 ## 📌 Current Status & Active Focus
 
-- **Current Status**: Implemented Multi-Team Membership & Team Switcher across Backend (`src/`) and Web (`web/`), allowing any user to host another team, join another team, and switch active team workspaces cleanly.
-- **Active Focus**: Verifying backend Jest suite and pushing multi-team feature to GitHub (`main`).
+- **Current Status**: Added reusable `TaskActionMenu` with `Delete task` option inside the three-dots menus on Dashboard Next High Priority card, Dashboard High-priority tasks list, TasksPage, and WatchCard.
+- **Active Focus**: Verifying web build and pushing updates to GitHub (`main`) for Vercel deployment.
 - **Last Updated**: 2026-11-12
 
 ---
@@ -28,6 +28,14 @@
 ---
 
 ## 📜 What Was Done (Completed Work History)
+
+### [2026-11-12] - Delete Task Option in Three-Dots Project/Task Menus
+- **Shared Menu Component**:
+  - Created [`web/src/components/common/TaskActionMenu.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/components/common/TaskActionMenu.tsx) providing `View details`, `Open registration page`, `Mark complete/active`, optional extra menu items, and `Delete task` (calling `eventsApi.deleteEvent` with confirmation, creator/owner permission check, and cache invalidation across `events`, `dashboard`, `watchlist`, and `activity`).
+- **Integrated Across Project & Task Cards**:
+  - [`DashboardPage.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/features/dashboard/DashboardPage.tsx): Added `TaskActionMenu` to both the Next High Priority card (fixed outer `overflow-hidden` so dropdown menus never clip) and each item in High-priority tasks.
+  - [`TasksPage.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/features/tasks/TasksPage.tsx): Added `TaskActionMenu` to every task row.
+  - [`WatchCard.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/features/watchlist/WatchCard.tsx): Added `TaskActionMenu` with both `Remove from watchlist` and `Delete task`.
 
 ### [2026-11-12] - Multi-Team Membership, Host/Join Another Team & Team Switcher
 - **Contracts & Data Model**:

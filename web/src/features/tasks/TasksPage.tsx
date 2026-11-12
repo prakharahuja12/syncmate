@@ -16,6 +16,7 @@ import { useAuthStore } from '../../stores/authStore';
 import { formatDate, formatTime, formatRelativeTime, computeIsUrgent } from '../../lib/dates';
 import { CategoryBadge } from '../../components/common/CategoryBadge';
 import { PriorityBadge } from '../../components/common/PriorityBadge';
+import { TaskActionMenu } from '../../components/common/TaskActionMenu';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Badge } from '../../components/ui/badge';
@@ -251,7 +252,7 @@ export const TasksPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 shrink-0 text-xs text-muted">
+                <div className="flex items-center gap-3 shrink-0 text-xs text-muted">
                   <div className="text-right">
                     <span className="block font-medium text-foreground">
                       {formatDate(task.startAt, 'MMM d, yyyy')}
@@ -266,6 +267,18 @@ export const TasksPage: React.FC = () => {
                   >
                     View
                   </Button>
+
+                  <TaskActionMenu
+                    event={task}
+                    ariaLabel={`Actions for ${task.title}`}
+                    onViewDetails={(id) => setSelectedEventId(id)}
+                    onToggleComplete={(evt) =>
+                      completeMutation.mutate({
+                        eventId: evt.id,
+                        isCompleted: evt.status === 'completed',
+                      })
+                    }
+                  />
                 </div>
               </div>
             );

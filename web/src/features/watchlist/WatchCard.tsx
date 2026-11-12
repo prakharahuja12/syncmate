@@ -9,8 +9,8 @@ import {
   ExternalLink as ExternalIcon,
   Globe,
   Bell,
-  Trash2,
   CheckCircle2,
+  X,
 } from 'lucide-react';
 import { eventsApi } from '../events/api';
 import { useAuthStore } from '../../stores/authStore';
@@ -18,6 +18,7 @@ import { useUiStore } from '../../stores/uiStore';
 import { formatDate, formatDeadlineCountdown, formatRelativeTime } from '../../lib/dates';
 import { CategoryBadge } from '../../components/common/CategoryBadge';
 import { PriorityBadge } from '../../components/common/PriorityBadge';
+import { TaskActionMenu } from '../../components/common/TaskActionMenu';
 import { Avatar } from '../../components/ui/avatar';
 import { Button } from '../../components/ui/button';
 import { WatchlistItem, ParticipationStatus, UserSummary } from '../../types/api';
@@ -140,14 +141,25 @@ export const WatchCard: React.FC<WatchCardProps> = ({
           )}
         </div>
 
-        <button
-          type="button"
-          onClick={() => unpinMutation.mutate()}
-          className="text-muted hover:text-red-500 p-1 rounded-md transition-colors cursor-pointer"
-          title="Remove from watchlist"
-        >
-          <Trash2 className="h-4 w-4" />
-        </button>
+        <TaskActionMenu
+          event={item}
+          ariaLabel={`Actions for ${item.title}`}
+          onViewDetails={(id) => onOpenDetails(id)}
+          extraItems={(closeMenu) => (
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                closeMenu();
+                unpinMutation.mutate();
+              }}
+              className="w-full flex items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-medium text-foreground hover:bg-surface transition-colors cursor-pointer"
+            >
+              <X className="h-3.5 w-3.5 text-muted" />
+              <span>Remove from watchlist</span>
+            </button>
+          )}
+        />
       </div>
 
       {/* Title & Pinned By */}
