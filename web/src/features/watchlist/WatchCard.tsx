@@ -11,7 +11,6 @@ import {
   Bell,
   Trash2,
   CheckCircle2,
-  MoreVertical,
 } from 'lucide-react';
 import { eventsApi } from '../events/api';
 import { useAuthStore } from '../../stores/authStore';

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
   Calendar,
@@ -13,18 +13,22 @@ import {
   MoreHorizontal,
   Flame,
   Check,
+  ExternalLink,
+  Eye,
 } from 'lucide-react';
 import { dashboardApi } from './api';
 import { eventsApi } from '../events/api';
 import { useAuthStore } from '../../stores/authStore';
+import { useDismissibleMenu } from '../../lib/useDismissibleMenu';
 import { formatDate, formatTime, formatDeadlineCountdown } from '../../lib/dates';
-import { CategoryBadge } from '../../components/common/CategoryBadge';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { EventDetailsDrawer } from '../events/EventDetailsDrawer';
 import { EventDialog } from '../events/EventDialog';
 
 export const DashboardPage: React.FC = () => {
+  const navigate = useNavigate();
+  const heroMenu = useDismissibleMenu();
   const queryClient = useQueryClient();
   const user = useAuthStore((s) => s.user);
   const currentGroupId = useAuthStore((s) => s.group?.id);
@@ -235,12 +239,102 @@ export const DashboardPage: React.FC = () => {
                   Next High Priority
                 </span>
               </div>
-              <button
-                onClick={() => nextHighPriority && setSelectedEventId(nextHighPriority.id)}
-                className="text-muted hover:text-foreground p-1 transition-colors"
-              >
-                <MoreHorizontal className="h-4 w-4" />
-              </button>
+              <div ref={heroMenu.containerRef} className="relative">
+                <button
+                  type="button"
+                  onClick={heroMenu.toggle}
+                  aria-label="Next high priority options"
+                  aria-expanded={heroMenu.isOpen}
+                  aria-haspopup="menu"
+                  className="text-muted hover:text-foreground hover:bg-surface p-1.5 rounded-lg transition-colors cursor-pointer"
+                >
+                  <MoreHorizontal className="h-4 w-4" />
+                </button>
+
+                {heroMenu.isOpen && (
+                  <div
+                    role="menu"
+                    className="absolute right-0 top-full mt-1.5 z-40 w-52 rounded-xl border border-border bg-card shadow-xl p-1.5 space-y-1"
+                  >
+                    {nextHighPriority && (
+                      <>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            heroMenu.close();
+                            setSelectedEventId(nextHighPriority.id);
+                          }}
+                          className="w-full flex items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-medium text-foreground hover:bg-surface transition-colors cursor-pointer"
+                        >
+                          <Eye className="h-3.5 w-3.5 text-muted" />
+                          <span>View event details</span>
+                        </button>
+                        {(nextHighPriority.primaryUrl ||
+                          nextHighPriority.hackathon?.registrationUrl) && (
+                          <a
+                            href={
+                              nextHighPriority.primaryUrl ||
+                              nextHighPriority.hackathon?.registrationUrl
+                            }
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={heroMenu.close}
+                            className="w-full flex items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-medium text-foreground hover:bg-surface transition-colors"
+                          >
+                            <ExternalLink className="h-3.5 w-3.5 text-muted" />
+                            <span>Open registration page</span>
+                          </a>
+                        )}
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            heroMenu.close();
+                            completeMutation.mutate({
+                              eventId: nextHighPriority.id,
+                              isCompleted: nextHighPriority.status === 'completed',
+                            });
+                          }}
+                          className="w-full flex items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-medium text-foreground hover:bg-surface transition-colors cursor-pointer"
+                        >
+                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+                          <span>
+                            {nextHighPriority.status === 'completed'
+                              ? 'Mark active'
+                              : 'Mark complete'}
+                          </span>
+                        </button>
+                        <div className="my-1 border-t border-border/70" />
+                      </>
+                    )}
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        heroMenu.close();
+                        navigate('/tasks');
+                      }}
+                      className="w-full flex items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-medium text-foreground hover:bg-surface transition-colors cursor-pointer"
+                    >
+                      <Flame className="h-3.5 w-3.5 text-amber-400" />
+                      <span>All high-priority tasks</span>
+                    </button>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        heroMenu.close();
+                        setIsCreateOpen(true);
+                      }}
+                      className="w-full flex items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-medium text-primary hover:bg-surface transition-colors cursor-pointer"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      <span>New event</span>
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Category badge */}

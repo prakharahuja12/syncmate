@@ -11,11 +11,13 @@ import {
   Laptop,
   Save,
   Check,
+  LogOut,
 } from 'lucide-react';
 import { settingsApi } from './api';
 import { GoogleCalendarCard } from './GoogleCalendarCard';
 import { useAuthStore } from '../../stores/authStore';
 import { useUiStore } from '../../stores/uiStore';
+import { useSignOut } from '../auth/useSignOut';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Avatar } from '../../components/ui/avatar';
@@ -34,6 +36,7 @@ const AVATAR_COLORS = [
 ];
 
 export const SettingsPage: React.FC = () => {
+  const signOut = useSignOut();
   const queryClient = useQueryClient();
   const currentUser = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
@@ -85,13 +88,26 @@ export const SettingsPage: React.FC = () => {
   return (
     <div className="p-6 md:p-8 max-w-4xl mx-auto space-y-6 animate-in fade-in duration-200">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">
-          Settings
-        </h1>
-        <p className="text-sm text-muted mt-1">
-          Manage your account profile, preferences, appearance, and integrations.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">
+            Settings
+          </h1>
+          <p className="text-sm text-muted mt-1">
+            Manage your account profile, preferences, appearance, and integrations.
+          </p>
+        </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => void signOut()}
+          className="gap-1.5 text-red-400 border-red-500/30 hover:bg-red-500/10 hover:text-red-300 self-start sm:self-auto"
+        >
+          <LogOut className="h-3.5 w-3.5" />
+          <span>Sign out</span>
+        </Button>
       </div>
 
       {/* Tabs */}

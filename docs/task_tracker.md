@@ -7,8 +7,8 @@
 
 ## 📌 Current Status & Active Focus
 
-- **Current Status**: Connected Render backend (`https://syncmate-2d9o.onrender.com`) and Vercel frontend (`https://syncmate-one.vercel.app`) end-to-end across Backend CORS, Socket.IO, OAuth/Notification URLs, Web constants, and Mobile deep links.
-- **Active Focus**: Verifying all backend/web/mobile test suites and pushing production configuration to GitHub (`main`).
+- **Current Status**: Wired all three-dots menus (`Sidebar`, `BottomNav`, and `DashboardPage`) with interactive popover/action sheets and shared `useSignOut` + `useDismissibleMenu` hooks across the web app.
+- **Active Focus**: Verifying web build and pushing updates to GitHub (`main`) for Vercel deployment.
 - **Last Updated**: 2026-11-12
 
 ---
@@ -28,6 +28,16 @@
 ---
 
 ## 📜 What Was Done (Completed Work History)
+
+### [2026-11-12] - Interactive Three-Dots Menus (`Sidebar`, `BottomNav`, `DashboardPage`)
+- **Shared Hooks**:
+  - Created [`web/src/lib/useDismissibleMenu.ts`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/lib/useDismissibleMenu.ts) for automatic click-outside and Escape-key dismissal across popover menus.
+  - Created [`web/src/features/auth/useSignOut.ts`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/features/auth/useSignOut.ts) to centralize logout, Socket.IO disconnection, query cache clearing, and redirect to `/login`.
+- **Fixed Three-Dots Buttons**:
+  - **Sidebar Profile Footer ([`Sidebar.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/components/layout/Sidebar.tsx))**: Wired the `MoreHorizontal` (`...`) button and collapsed avatar to open an upward menu (`Profile & Settings`, `Group & Members`, `Notifications`, `Sign out`).
+  - **Mobile Web BottomNav ([`BottomNav.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/components/layout/BottomNav.tsx))**: Converted the `More` (`...`) tab from a single `/settings` link into a full upward action sheet providing `Tasks`, `Notifications` (with unread badge), `Group & Members`, `Settings & Sync`, and `Sign out`.
+  - **Dashboard Hero Card ([`DashboardPage.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/features/dashboard/DashboardPage.tsx))**: Wired the Next High Priority card's `MoreHorizontal` (`...`) button to open an action dropdown (`View event details`, `Open registration page`, `Mark complete/active`, `All high-priority tasks`, `New event`).
+  - **Settings & Cleanup**: Added a `Sign out` button to [`SettingsPage.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/features/settings/SettingsPage.tsx) and removed unused `MoreVertical` import in [`WatchCard.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/features/watchlist/WatchCard.tsx).
 
 ### [2026-11-12] - Render (`syncmate-2d9o.onrender.com`) & Vercel (`syncmate-one.vercel.app`) Integration
 - **Backend CORS, Socket.IO & Environment Defaults**:
