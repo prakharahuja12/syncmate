@@ -48,8 +48,13 @@ export async function processDueReminders(currentTime = new Date()) {
       const event = await Event.findById(claimed.eventId);
       const user = await User.findById(claimed.userId);
 
-      // Verify event is active and user remains in group
-      if (!event || event.status === 'completed' || !user || !user.groupId?.equals(claimed.groupId)) {
+      // Verify event is active and user remains in the reminder's group
+      const belongsToGroup =
+        Boolean(user) &&
+        (user.groupId?.equals(claimed.groupId) ||
+          (Array.isArray(user.groupIds) &&
+            user.groupIds.some((gid) => gid.equals(claimed.groupId))));
+      if (!event || event.status === 'completed' || !belongsToGroup) {
         claimed.status = 'cancelled';
         await claimed.save();
         continue;

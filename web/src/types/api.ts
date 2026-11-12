@@ -62,6 +62,7 @@ export interface User {
   avatarColor: string;
   timezone: string;
   groupId: string | null;
+  groupIds?: string[];
   settings: UserSettings;
   createdAt: string;
   updatedAt: string;

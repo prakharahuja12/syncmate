@@ -16,6 +16,7 @@ import {
 import { useUiStore } from '../../stores/uiStore';
 import { useSignOut } from '../../features/auth/useSignOut';
 import { useDismissibleMenu } from '../../lib/useDismissibleMenu';
+import { QuickTeamSwitcher } from '../common/QuickTeamSwitcher';
 
 export interface BottomNavProps {
   onNewEvent: () => void;
@@ -60,6 +61,9 @@ export const BottomNav: React.FC<BottomNavProps> = ({ onNewEvent }) => {
               <X className="h-3.5 w-3.5" />
             </button>
           </div>
+
+          <QuickTeamSwitcher onSelect={moreMenu.close} />
+          <div className="my-1 border-t border-border/60" />
 
           {moreItems.map((item) => {
             const Icon = item.icon;

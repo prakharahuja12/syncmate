@@ -7,8 +7,8 @@
 
 ## 📌 Current Status & Active Focus
 
-- **Current Status**: Wired all three-dots menus (`Sidebar`, `BottomNav`, and `DashboardPage`) with interactive popover/action sheets and shared `useSignOut` + `useDismissibleMenu` hooks across the web app.
-- **Active Focus**: Verifying web build and pushing updates to GitHub (`main`) for Vercel deployment.
+- **Current Status**: Implemented Multi-Team Membership & Team Switcher across Backend (`src/`) and Web (`web/`), allowing any user to host another team, join another team, and switch active team workspaces cleanly.
+- **Active Focus**: Verifying backend Jest suite and pushing multi-team feature to GitHub (`main`).
 - **Last Updated**: 2026-11-12
 
 ---
@@ -16,7 +16,7 @@
 ## 📋 What Will You Do (Planned Next Steps)
 
 ### Production Verification & Maintenance
-- [x] **Backend API (Phases 1–9)**: Completed, 138/138 tests passing, Dockerised, pushed to git (`main`). Live on Render: `https://syncmate-2d9o.onrender.com`.
+- [x] **Backend API (Phases 1–9)**: Completed, 141 tests verified across 13 suites (including Multi-Team endpoints), Dockerised, pushed to git (`main`). Live on Render: `https://syncmate-2d9o.onrender.com`.
 - [x] **Mobile App (Phases 1–8)**: Completed, Expo SDK 52, strict TypeScript 0 errors, 22/22 tests passing, default URL pointed to Render backend.
 - [x] **Web Client (Phases 1–8)**: Completed, Vite + React 18 + Tailwind, strict TypeScript 0 errors, 17/17 tests passing, production build verified, default URL pointed to Render backend.
 - [x] **Figma Frontend Integration**: Extracted and implemented design from user Figma link (`Create-a-Smooth-Website-Frontend`) with mint teal tokens, digital countdown timer, stats cards, and schedule widgets.
@@ -28,6 +28,21 @@
 ---
 
 ## 📜 What Was Done (Completed Work History)
+
+### [2026-11-12] - Multi-Team Membership, Host/Join Another Team & Team Switcher
+- **Contracts & Data Model**:
+  - Updated [`API_CONTRACT.md`](file:///c:/Users/prakh/OneDrive/Desktop/projects/syncmate-backend-instructions/API_CONTRACT.md) and [`DATA_MODEL.md`](file:///c:/Users/prakh/OneDrive/Desktop/projects/syncmate-backend-instructions/DATA_MODEL.md) to support multi-group membership (`User.groupIds` + active `User.groupId`), `GET /api/v1/groups`, and `POST /api/v1/groups/:gid/switch`.
+- **Backend (`src/`)**:
+  - Added `groupIds` array to [`User.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/models/User.js) and serialized `groupIds` alongside active `groupId` in [`serializers.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/utils/serializers.js).
+  - Updated [`group.service.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/services/group.service.js), [`group.controller.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/controllers/group.controller.js), and [`group.routes.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/routes/group.routes.js) with `activateUserGroup` / `detachUserFromGroup` helpers so users can host multiple teams (`POST /groups`), join additional teams (`POST /groups/join`), list all their teams (`GET /groups`), and switch active teams (`POST /groups/:gid/switch`) with automatic fallback on leave/remove/delete.
+  - Added `moveUserSocketToGroup` in [`socket.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/realtime/socket.js) and updated [`reminder.job.js`](file:///c:/Users/prakh/OneDrive/Desktop/projects/src/jobs/reminder.job.js) to honor reminders across all joined teams.
+- **Web Frontend (`web/`)**:
+  - Added `listMyGroups` & `switchGroup` in [`web/src/features/group/api.ts`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/features/group/api.ts) and shared [`useTeamActions.ts`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/features/group/useTeamActions.ts) hook (store + Socket.IO room reconnect + cache invalidation).
+  - Built `"Your Teams"` workspace switcher + inline **Host another team** & **Join another team** forms in [`GroupPage.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/features/group/GroupPage.tsx) and updated [`JoinGroupPage.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/features/group/JoinGroupPage.tsx).
+  - Created [`QuickTeamSwitcher.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/components/common/QuickTeamSwitcher.tsx) and integrated it into [`Sidebar.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/components/layout/Sidebar.tsx) and [`BottomNav.tsx`](file:///c:/Users/prakh/OneDrive/Desktop/projects/web/src/components/layout/BottomNav.tsx).
+- **Verification**:
+  - Web: `npm run typecheck` (0 errors), `npm test` (4/4 files, 17/17 tests passed), `npm run build` (built in 27.85s).
+  - Backend: 12/13 suites (including `group.test.js` multi-team tests) passed in full run (`event.test.js` had 2 bcrypt hook timeouts under concurrent Vite build load); `tests/event.test.js` passed 18/18 in isolated run.
 
 ### [2026-11-12] - Interactive Three-Dots Menus (`Sidebar`, `BottomNav`, `DashboardPage`)
 - **Shared Hooks**:

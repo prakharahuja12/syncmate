@@ -2,6 +2,16 @@ import { apiClient } from '../../lib/api';
 import { ApiResponse, Group, GroupPreview } from '../../types/api';
 
 export const groupApi = {
+  async listMyGroups(): Promise<Group[]> {
+    const res = await apiClient.get<ApiResponse<{ groups: Group[] }>>('/groups');
+    return res.data.data.groups;
+  },
+
+  async switchGroup(groupId: string): Promise<Group> {
+    const res = await apiClient.post<ApiResponse<Group>>(`/groups/${groupId}/switch`);
+    return res.data.data;
+  },
+
   async getMyGroup(): Promise<Group> {
     const res = await apiClient.get<ApiResponse<Group>>('/groups/me');
     return res.data.data;

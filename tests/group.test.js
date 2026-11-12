@@ -45,25 +45,31 @@ describe('Group Endpoints & Workflows (Phase 2)', () => {
       expect(user.groupId.toString()).toBe(res.body.data.id);
     });
 
-    it('rejects creating a group if user is already in a group with 409 CONFLICT', async () => {
-      const { token } = await createTestUser('Bob Busy', 'bob@test.com');
+    it('allows hosting another team while already in a group and switches active groupId', async () => {
+      const { token, userId } = await createTestUser('Bob Busy', 'bob@test.com');
 
       // First group
-      await request(app)
+      const firstRes = await request(app)
         .post('/api/v1/groups')
         .set('Authorization', `Bearer ${token}`)
         .send({ name: 'First Group' });
+      expect(firstRes.status).toBe(201);
 
-      // Attempt second group
-      const res = await request(app)
+      // Host second group
+      const secondRes = await request(app)
         .post('/api/v1/groups')
         .set('Authorization', `Bearer ${token}`)
         .send({ name: 'Second Group' });
 
-      expect(res.status).toBe(409);
-      expect(res.body.success).toBe(false);
-      expect(res.body.error.code).toBe('CONFLICT');
-      expect(res.body.error.message).toContain('already belongs to a group');
+      expect(secondRes.status).toBe(201);
+      expect(secondRes.body.success).toBe(true);
+      expect(secondRes.body.data.name).toBe('Second Group');
+
+      const user = await User.findById(userId);
+      expect(user.groupId.toString()).toBe(secondRes.body.data.id);
+      expect(user.groupIds.map((id) => id.toString())).toEqual(
+        expect.arrayContaining([firstRes.body.data.id, secondRes.body.data.id])
+      );
     });
 
     it('validates group name input', async () => {
@@ -219,16 +225,38 @@ describe('Group Endpoints & Workflows (Phase 2)', () => {
       expect(res.body.error.code).toBe('INVITE_INVALID');
     });
 
-    it('rejects joining if user already in a group with 409 CONFLICT', async () => {
-      const otherGroup = await createTestUser('Other Group User', 'othergrp@test.com');
-      await request(app)
+    it('allows joining a second team while already in another group', async () => {
+      const otherGroupUser = await createTestUser('Other Group User', 'othergrp@test.com');
+      const firstRes = await request(app)
         .post('/api/v1/groups')
-        .set('Authorization', `Bearer ${otherGroup.token}`)
+        .set('Authorization', `Bearer ${otherGroupUser.token}`)
         .send({ name: 'Another Group' });
 
       const res = await request(app)
         .post('/api/v1/groups/join')
-        .set('Authorization', `Bearer ${otherGroup.token}`)
+        .set('Authorization', `Bearer ${otherGroupUser.token}`)
+        .send({ code: inviteCode });
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.id).toBe(groupId);
+
+      const user = await User.findById(otherGroupUser.userId);
+      expect(user.groupId.toString()).toBe(groupId);
+      expect(user.groupIds.map((id) => id.toString())).toEqual(
+        expect.arrayContaining([firstRes.body.data.id, groupId])
+      );
+    });
+
+    it('rejects joining the same group twice with 409 CONFLICT', async () => {
+      const joiner = await createTestUser('Duplicate Joiner', 'dupjoin@test.com');
+      await request(app)
+        .post('/api/v1/groups/join')
+        .set('Authorization', `Bearer ${joiner.token}`)
+        .send({ code: inviteCode });
+
+      const res = await request(app)
+        .post('/api/v1/groups/join')
+        .set('Authorization', `Bearer ${joiner.token}`)
         .send({ code: inviteCode });
 
       expect(res.status).toBe(409);
@@ -605,6 +633,90 @@ describe('Group Endpoints & Workflows (Phase 2)', () => {
         .set('Authorization', `Bearer ${member.token}`);
 
       expect(res.status).toBe(403);
+    });
+  });
+
+  describe('GET /api/v1/groups & POST /api/v1/groups/:gid/switch (Multi-Team Switcher)', () => {
+    it('lists all hosted and joined teams and switches active workspace cleanly', async () => {
+      const alice = await createTestUser('Alice Multi', 'alicemulti@test.com');
+      const bob = await createTestUser('Bob Host', 'bobhost@test.com');
+
+      // Alice hosts Team A
+      const teamARes = await request(app)
+        .post('/api/v1/groups')
+        .set('Authorization', `Bearer ${alice.token}`)
+        .send({ name: 'Team A (Hosted)' });
+      const teamAId = teamARes.body.data.id;
+
+      // Bob hosts Team B
+      const teamBRes = await request(app)
+        .post('/api/v1/groups')
+        .set('Authorization', `Bearer ${bob.token}`)
+        .send({ name: 'Team B (Joined)' });
+      const teamBId = teamBRes.body.data.id;
+
+      // Alice joins Team B -> active becomes Team B
+      await request(app)
+        .post('/api/v1/groups/join')
+        .set('Authorization', `Bearer ${alice.token}`)
+        .send({ code: teamBRes.body.data.inviteCode });
+
+      // List all Alice's teams
+      const listRes = await request(app)
+        .get('/api/v1/groups')
+        .set('Authorization', `Bearer ${alice.token}`);
+
+      expect(listRes.status).toBe(200);
+      expect(listRes.body.data.groups.length).toBe(2);
+
+      const listedA = listRes.body.data.groups.find((g) => g.id === teamAId);
+      const listedB = listRes.body.data.groups.find((g) => g.id === teamBId);
+      expect(listedA.inviteCode).toBeDefined(); // Alice is owner of Team A
+      expect(listedB.inviteCode).toBeUndefined(); // Alice is only member of Team B
+
+      // Switch active team back to Team A
+      const switchRes = await request(app)
+        .post(`/api/v1/groups/${teamAId}/switch`)
+        .set('Authorization', `Bearer ${alice.token}`);
+
+      expect(switchRes.status).toBe(200);
+      expect(switchRes.body.data.id).toBe(teamAId);
+
+      // Verify /groups/me reflects Team A
+      const meRes = await request(app)
+        .get('/api/v1/groups/me')
+        .set('Authorization', `Bearer ${alice.token}`);
+      expect(meRes.status).toBe(200);
+      expect(meRes.body.data.id).toBe(teamAId);
+
+      // Alice switches to Team B and then leaves Team B -> falls back to Team A
+      await request(app)
+        .post(`/api/v1/groups/${teamBId}/switch`)
+        .set('Authorization', `Bearer ${alice.token}`);
+      const leaveRes = await request(app)
+        .post(`/api/v1/groups/${teamBId}/leave`)
+        .set('Authorization', `Bearer ${alice.token}`);
+      expect(leaveRes.status).toBe(200);
+
+      const userAfterLeave = await User.findById(alice.userId);
+      expect(userAfterLeave.groupId.toString()).toBe(teamAId);
+    });
+
+    it('returns 404 NOT_FOUND when switching to a group the user does not belong to', async () => {
+      const user1 = await createTestUser('User One', 'u1switch@test.com');
+      const user2 = await createTestUser('User Two', 'u2switch@test.com');
+
+      const foreignGroup = await request(app)
+        .post('/api/v1/groups')
+        .set('Authorization', `Bearer ${user2.token}`)
+        .send({ name: 'Private Squad' });
+
+      const res = await request(app)
+        .post(`/api/v1/groups/${foreignGroup.body.data.id}/switch`)
+        .set('Authorization', `Bearer ${user1.token}`);
+
+      expect(res.status).toBe(404);
+      expect(res.body.error.code).toBe('NOT_FOUND');
     });
   });
 });

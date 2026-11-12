@@ -28,9 +28,11 @@ router.get('/invite/:code/preview', asyncHandler(groupController.previewInvite))
 // Protected routes
 router.use(authenticate);
 
+router.get('/', asyncHandler(groupController.listMyGroups));
 router.post('/', validate(createGroupSchema), asyncHandler(groupController.createGroup));
 router.get('/me', asyncHandler(groupController.getGroupMe));
 router.post('/join', validate(joinGroupSchema), asyncHandler(groupController.joinGroup));
+router.post('/:gid/switch', asyncHandler(groupController.switchGroup));
 
 // Events scoped by group
 router.get(

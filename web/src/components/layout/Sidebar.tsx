@@ -18,6 +18,7 @@ import { useUiStore } from '../../stores/uiStore';
 import { useSignOut } from '../../features/auth/useSignOut';
 import { useDismissibleMenu } from '../../lib/useDismissibleMenu';
 import { SyncmateLogo } from '../common/SyncmateLogo';
+import { QuickTeamSwitcher } from '../common/QuickTeamSwitcher';
 
 export const Sidebar: React.FC = () => {
   const navigate = useNavigate();
@@ -138,8 +139,10 @@ export const Sidebar: React.FC = () => {
         {userMenu.isOpen && (
           <div
             role="menu"
-            className="absolute bottom-full left-3 right-3 mb-2 z-50 rounded-xl border border-border bg-card shadow-xl p-1.5 space-y-1 min-w-[180px]"
+            className="absolute bottom-full left-3 right-3 mb-2 z-50 rounded-xl border border-border bg-card shadow-xl p-1.5 space-y-1 min-w-[210px]"
           >
+            <QuickTeamSwitcher onSelect={userMenu.close} />
+            <div className="my-1 border-t border-border/70" />
             <button
               type="button"
               role="menuitem"

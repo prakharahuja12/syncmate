@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { customAlphabet } from 'nanoid';
 import { Group } from '../models/Group.js';
 import { User } from '../models/User.js';
@@ -10,10 +11,76 @@ import { Notification } from '../models/Notification.js';
 import { ApiError } from '../utils/ApiError.js';
 import { serializeGroup } from '../utils/serializers.js';
 import { eventBus } from '../utils/eventBus.js';
+import { moveUserSocketToGroup } from '../realtime/socket.js';
 import { env } from '../config/env.js';
 
 // 8-character invite code using unambiguous uppercase letters & digits (excluding 0, O, 1, I)
 const generateInviteCode = customAlphabet('ABCDEFGHJKLMNPQRSTUVWXYZ23456789', 8);
+
+/**
+ * Adds a group to the user's memberships (preserving legacy groupId) and sets it active.
+ * @param {object} user Mongoose User document
+ * @param {import('mongoose').Types.ObjectId|string} groupId
+ */
+const activateUserGroup = async (user, groupId) => {
+  const prevGroupId = user.groupId ? user.groupId.toString() : null;
+  const targetIdStr = groupId.toString();
+
+  const existingIds = new Set([
+    ...(Array.isArray(user.groupIds) ? user.groupIds.map((id) => id.toString()) : []),
+    ...(prevGroupId ? [prevGroupId] : []),
+    targetIdStr,
+  ]);
+
+  user.groupIds = Array.from(existingIds);
+  user.groupId = groupId;
+  await user.save();
+
+  moveUserSocketToGroup(user._id.toString(), targetIdStr, prevGroupId);
+};
+
+/**
+ * Removes a group from a user's memberships and falls back active groupId if needed.
+ * @param {import('mongoose').Types.ObjectId|string} userId
+ * @param {import('mongoose').Types.ObjectId|string} removedGroupId
+ */
+const detachUserFromGroup = async (userId, removedGroupId) => {
+  const user = await User.findById(userId);
+  if (!user) return;
+
+  const removedStr = removedGroupId.toString();
+  const prevGroupId = user.groupId ? user.groupId.toString() : null;
+
+  const remainingIds = Array.from(
+    new Set(
+      (Array.isArray(user.groupIds) ? user.groupIds : [])
+        .map((id) => id.toString())
+        .filter((id) => id !== removedStr)
+    )
+  );
+
+  let nextGroupId = remainingIds[0] || null;
+  if (!nextGroupId) {
+    const otherGroup = await Group.findOne({
+      'members.userId': user._id,
+      _id: { $ne: removedGroupId },
+    }).select('_id');
+    if (otherGroup) {
+      nextGroupId = otherGroup._id.toString();
+      remainingIds.push(nextGroupId);
+    }
+  }
+
+  user.groupIds = remainingIds;
+  if (!prevGroupId || prevGroupId === removedStr) {
+    user.groupId = nextGroupId || null;
+  }
+  await user.save();
+
+  if (prevGroupId === removedStr) {
+    moveUserSocketToGroup(user._id.toString(), nextGroupId, removedStr);
+  }
+};
 
 /**
  * Creates a unique invite code with collision retries.
@@ -44,10 +111,6 @@ export const createGroup = async ({ name, userId }) => {
     throw ApiError.unauthorized('User not found');
   }
 
-  if (user.groupId) {
-    throw ApiError.conflict('User already belongs to a group');
-  }
-
   const inviteCode = await getUniqueInviteCode();
 
   const group = await Group.create({
@@ -64,9 +127,8 @@ export const createGroup = async ({ name, userId }) => {
     ],
   });
 
-  // Assign user's groupId
-  user.groupId = group._id;
-  await user.save();
+  // Add group to user's memberships and set as active team
+  await activateUserGroup(user, group._id);
 
   await group.populate('members.userId', 'name avatarColor');
 
@@ -74,20 +136,74 @@ export const createGroup = async ({ name, userId }) => {
 };
 
 /**
- * Fetches the authenticated user's group.
+ * Fetches all groups the authenticated user belongs to.
+ *
+ * @param {string} userId
+ * @returns {Promise<object[]>} List of serialized groups
+ */
+export const listMyGroups = async (userId) => {
+  const groups = await Group.find({ 'members.userId': userId })
+    .populate('members.userId', 'name avatarColor')
+    .sort({ updatedAt: -1 });
+
+  return groups.map((g) => serializeGroup(g, userId));
+};
+
+/**
+ * Switches the authenticated user's active team to a group they belong to.
+ *
+ * @param {string} groupId
+ * @param {string} userId
+ * @returns {Promise<object>} Active serialized group
+ */
+export const switchActiveGroup = async (groupId, userId) => {
+  if (!mongoose.Types.ObjectId.isValid(groupId)) {
+    throw ApiError.notFound('Group not found');
+  }
+
+  const user = await User.findById(userId);
+  if (!user) {
+    throw ApiError.unauthorized('User not found');
+  }
+
+  const group = await Group.findOne({ _id: groupId, 'members.userId': user._id }).populate(
+    'members.userId',
+    'name avatarColor'
+  );
+  if (!group) {
+    throw ApiError.notFound('Group not found');
+  }
+
+  await activateUserGroup(user, group._id);
+  return serializeGroup(group, userId);
+};
+
+/**
+ * Fetches the authenticated user's active group.
  *
  * @param {string} userId
  * @returns {Promise<object>} Serialized group
  */
 export const getGroupMe = async (userId) => {
   const user = await User.findById(userId);
-  if (!user || !user.groupId) {
+  if (!user) {
     throw ApiError.notFound('User does not belong to any group');
   }
 
-  const group = await Group.findById(user.groupId).populate('members.userId', 'name avatarColor');
+  let group = null;
+  if (user.groupId) {
+    group = await Group.findById(user.groupId).populate('members.userId', 'name avatarColor');
+  }
+
   if (!group) {
-    throw ApiError.notFound('Group not found');
+    group = await Group.findOne({ 'members.userId': user._id }).populate(
+      'members.userId',
+      'name avatarColor'
+    );
+    if (!group) {
+      throw ApiError.notFound('User does not belong to any group');
+    }
+    await activateUserGroup(user, group._id);
   }
 
   return serializeGroup(group, userId);
@@ -128,10 +244,6 @@ export const joinGroup = async ({ code, userId }) => {
     throw ApiError.unauthorized('User not found');
   }
 
-  if (user.groupId) {
-    throw ApiError.conflict('User already belongs to a group');
-  }
-
   const normalizedCode = code.trim().toUpperCase();
   const group = await Group.findOne({ inviteCode: normalizedCode });
 
@@ -139,16 +251,16 @@ export const joinGroup = async ({ code, userId }) => {
     throw ApiError.inviteInvalid('Invite code is invalid or has expired');
   }
 
-  const maxMembers = group.maxMembers || env.MAX_GROUP_MEMBERS || 5;
-  if (group.members.length >= maxMembers) {
-    throw ApiError.groupFull('Group has reached maximum member limit');
-  }
-
   const isAlreadyMember = group.members.some(
     (m) => m.userId.toString() === user._id.toString()
   );
   if (isAlreadyMember) {
     throw ApiError.conflict('User is already a member of this group');
+  }
+
+  const maxMembers = group.maxMembers || env.MAX_GROUP_MEMBERS || 5;
+  if (group.members.length >= maxMembers) {
+    throw ApiError.groupFull('Group has reached maximum member limit');
   }
 
   group.members.push({
@@ -159,8 +271,7 @@ export const joinGroup = async ({ code, userId }) => {
 
   await group.save();
 
-  user.groupId = group._id;
-  await user.save();
+  await activateUserGroup(user, group._id);
 
   // Decoupled domain event emission
   eventBus.emit('domain.member.joined', {
@@ -258,7 +369,7 @@ export const removeMember = async (groupId, targetUserId, callerId) => {
   group.members.splice(memberIndex, 1);
   await group.save();
 
-  await User.updateOne({ _id: targetUserId }, { groupId: null });
+  await detachUserFromGroup(targetUserId, groupId);
 
   // Cascade delete member's group-scoped pins, participations, reminders
   await Promise.all([
@@ -309,7 +420,7 @@ export const leaveGroup = async (groupId, userId) => {
     await group.save();
   }
 
-  await User.updateOne({ _id: userId }, { groupId: null });
+  await detachUserFromGroup(userId, groupId);
 
   // Cascade delete leaving member's pins, participations, reminders
   await Promise.all([
@@ -389,6 +500,16 @@ export const deleteGroup = async (groupId, callerId) => {
     throw ApiError.forbidden('Only the group owner can delete the group');
   }
 
+  const affectedUsers = await User.find({
+    $or: [{ groupId }, { groupIds: groupId }],
+  }).select('_id');
+  const memberIds = Array.from(
+    new Set([
+      ...group.members.map((m) => m.userId.toString()),
+      ...affectedUsers.map((u) => u._id.toString()),
+    ])
+  );
+
   // Cascade delete all group data
   await Promise.all([
     Event.deleteMany({ groupId }),
@@ -397,9 +518,10 @@ export const deleteGroup = async (groupId, callerId) => {
     Reminder.deleteMany({ groupId }),
     Activity.deleteMany({ groupId }),
     Notification.deleteMany({ groupId }),
-    User.updateMany({ groupId }, { groupId: null }),
     Group.deleteOne({ _id: groupId }),
   ]);
+
+  await Promise.all(memberIds.map((uid) => detachUserFromGroup(uid, groupId)));
 
   eventBus.emit('group:deleted', { groupId, actorId: callerId });
 

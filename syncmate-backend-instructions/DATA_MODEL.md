@@ -3,7 +3,7 @@
 All collections: `timestamps: true`. `_id` ObjectId exposed as `id` via toJSON transform. Add indexes exactly as listed.
 
 ## users
-`name, email(unique, lowercase), passwordHash, avatarColor, timezone('Asia/Kolkata' default), settings{theme:'system|light|dark', emailNotifications:false, pushNotifications:true, inAppNotifications:true}, groupId(ref, indexed), pushTokens[{token,platform,deviceId,lastSeenAt}], google{connected,email,refreshTokenEnc,calendarId:'primary',syncPreferences{mode:'all',categories[],priorities[],includeRegistrationDeadlines:false},lastSyncAt}`
+`name, email(unique, lowercase), passwordHash, avatarColor, timezone('Asia/Kolkata' default), settings{theme:'system|light|dark', emailNotifications:false, pushNotifications:true, inAppNotifications:true}, groupId(active Group ref, indexed), groupIds([Group ref], indexed), pushTokens[{token,platform,deviceId,lastSeenAt}], google{connected,email,refreshTokenEnc,calendarId:'primary',syncPreferences{mode:'all',categories[],priorities[],includeRegistrationDeadlines:false},lastSyncAt}`
 
 ## refreshtokens
 `userId, tokenHash, deviceId, expiresAt (TTL index), revokedAt, replacedBy`

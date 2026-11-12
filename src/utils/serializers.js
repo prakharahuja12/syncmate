@@ -26,6 +26,12 @@ export const serializeUser = (user) => {
         : [60],
     },
     groupId: raw.groupId ? raw.groupId.toString() : null,
+    groupIds: Array.from(
+      new Set([
+        ...(Array.isArray(raw.groupIds) ? raw.groupIds.map((g) => g.toString()) : []),
+        ...(raw.groupId ? [raw.groupId.toString()] : []),
+      ])
+    ),
     createdAt: raw.createdAt ? new Date(raw.createdAt).toISOString() : new Date().toISOString(),
     updatedAt: raw.updatedAt ? new Date(raw.updatedAt).toISOString() : new Date().toISOString(),
   };

@@ -2,17 +2,17 @@ import * as React from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { groupApi } from './api';
+import { useTeamActions } from './useTeamActions';
 import { useAuthStore } from '../../stores/authStore';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { GroupPreview } from '../../types/api';
-import { initSocket } from '../../lib/socket';
 
 export const JoinGroupPage: React.FC = () => {
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const setGroup = useAuthStore((s) => s.setGroup);
+  const { applyActiveGroup } = useTeamActions();
 
   const [preview, setPreview] = React.useState<GroupPreview | null>(null);
   const [error, setError] = React.useState<string | null>(null);
@@ -45,9 +45,7 @@ export const JoinGroupPage: React.FC = () => {
     setIsJoining(true);
     try {
       const joined = await groupApi.joinGroup(code.toUpperCase());
-      setGroup(joined);
-      initSocket();
-      toast.success(`Joined "${joined.name}"!`);
+      await applyActiveGroup(joined, `Joined "${joined.name}"!`);
       navigate('/');
     } catch (err: any) {
       toast.error(err.message || 'Failed to join group');

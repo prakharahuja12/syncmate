@@ -120,3 +120,21 @@ export const emitToUser = (userId, event, payload) => {
   if (!io) return;
   io.to(`user:${userId}`).emit(event, payload);
 };
+
+/**
+ * Moves connected sockets for a user from an old active group room to a new one.
+ *
+ * @param {string} userId
+ * @param {string|null} newGroupId
+ * @param {string|null} [oldGroupId]
+ */
+export const moveUserSocketToGroup = (userId, newGroupId, oldGroupId = null) => {
+  if (!io) return;
+  const userRoom = io.in(`user:${userId}`);
+  if (oldGroupId) {
+    userRoom.socketsLeave(`group:${oldGroupId}`);
+  }
+  if (newGroupId) {
+    userRoom.socketsJoin(`group:${newGroupId}`);
+  }
+};

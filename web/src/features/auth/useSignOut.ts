@@ -24,3 +24,4 @@ export const useSignOut = () => {
     navigate('/login');
   }, [clearSession, navigate, queryClient]);
 };
+

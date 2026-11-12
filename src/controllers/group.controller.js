@@ -9,6 +9,19 @@ export const createGroup = async (req, res) => {
   return successResponse(res, result, 201);
 };
 
+export const listMyGroups = async (req, res) => {
+  const groups = await groupService.listMyGroups(req.user._id.toString());
+  return successResponse(res, { groups }, 200);
+};
+
+export const switchGroup = async (req, res) => {
+  const result = await groupService.switchActiveGroup(
+    req.params.gid,
+    req.user._id.toString()
+  );
+  return successResponse(res, result, 200);
+};
+
 export const getGroupMe = async (req, res) => {
   const result = await groupService.getGroupMe(req.user._id.toString());
   return successResponse(res, result, 200);

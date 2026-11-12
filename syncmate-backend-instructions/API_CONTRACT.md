@@ -30,10 +30,12 @@ Access token: 15 min. Refresh token: 30 days, rotating.
 ## Groups
 | Method | Path | Body | Notes |
 |---|---|---|---|
-| POST | /groups | `{name}` | creator becomes `owner`; generates `inviteCode` (8 chars, A-Z2-9) |
-| GET | /groups/me | – | the user's group (a user belongs to ONE group in v1) |
+| POST | /groups | `{name}` | creator becomes `owner`; generates `inviteCode` (8 chars, A-Z2-9); switches active `groupId` to the new group (supports hosting multiple teams) |
+| GET | /groups | – | lists all groups the user belongs to (`{ groups: Group[] }`; `inviteCode` exposed only for owned groups) |
+| GET | /groups/me | – | the user's active group (`user.groupId`) |
+| POST | /groups/:gid/switch | – | switches the user's active `groupId` to `:gid` (404 if not a member); returns `{ group }` |
 | GET | /groups/invite/:code/preview (PUBLIC) | – | `{groupName, memberCount, maxMembers}` |
-| POST | /groups/join | `{code}` | adds member; 409 GROUP_FULL if members >= maxMembers (default 5 = owner + 4) |
+| POST | /groups/join | `{code}` | adds member & switches active `groupId` to joined group; 409 CONFLICT if already in that group; 409 GROUP_FULL if members >= maxMembers (default 5 = owner + 4) |
 | PATCH | /groups/:gid | `{name}` | owner only |
 | POST | /groups/:gid/invite/regenerate | – | owner only; old code dies |
 | DELETE | /groups/:gid/members/:userId | – | owner only |

@@ -92,6 +92,16 @@ const userSchema = new mongoose.Schema(
       default: null,
       index: true,
     },
+    groupIds: {
+      type: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Group',
+        },
+      ],
+      default: [],
+      index: true,
+    },
     pushTokens: {
       type: [pushTokenSchema],
       default: [],
